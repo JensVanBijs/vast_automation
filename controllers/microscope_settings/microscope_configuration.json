@@ -1,0 +1,43 @@
+{
+    "objectives": {
+      "2.5x": {
+        "bf_zheight": 16441.78396484375,
+        "fluo_zheight": 17319.3913671875,
+        "brightness": 50,
+        "turret_location": 2,
+        "positions": 1
+      },
+      "4x": {
+        "bf_zheight": 23878.49529296875,
+        "fluo_zheight": 23853.7407421875,
+        "brightness": 50,
+        "turret_location": 4,
+        "positions": 2
+      },
+      "10x": {
+        "bf_zheight": 17114.2344140625,
+        "fluo_zheight": 17134.652734375,
+        "brightness": 50,
+        "turret_location": 0,
+        "positions": 4
+      }
+    },
+    "filters": {
+      "White": {
+        "filter_location": 1,
+        "fluorescence": 0,
+        "exposure": 25
+      },
+      "Green": {
+        "filter_location": 0,
+        "fluorescence" : 1,
+        "exposure": 25
+      },
+      "Blue": {
+        "filter_location": 3,
+        "fluorescence": 1,
+        "exposure": 1000
+      }
+    }
+  }
+  
