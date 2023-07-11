@@ -58,7 +58,6 @@ for fluo in fluorescence:
 
 def execute():
     """Start executing the VAST loop through external imaging"""
-    # TODO: Vast camera scripting
     fish_amount = int(fishes.get())
     experiment_name = str(name.get())
     main(leica, vast, selected, heights, fish_amount, experiment_name)
@@ -124,8 +123,3 @@ name = tk.Entry(master, width=20)
 name.pack()
 
 tk.mainloop()
-
-# TODO: imaging options for each objective
-# TODO: Order of operation should be explained in the UI
-# TODO: UI structure should be better (not just a long list) --> Subwindows
-# BUG: Upgrade UI structure. Use pseudocode for this. Also put the pseudocode in the paper!

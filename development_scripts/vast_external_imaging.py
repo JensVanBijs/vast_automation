@@ -5,7 +5,6 @@ data_dir = os.path.dirname(os.path.abspath(__file__))
 data_dir = os.path.abspath(f"{data_dir}/../../../data")
 
 with open(os.path.abspath(f"{data_dir}/external.txt"), "w") as file_obj:
-    # TODO: Specify specific zebrafish distance (for different occulars)
     for i in range(1, 101):
         tomography = " no"
         x_position = 0

@@ -61,7 +61,7 @@ def define_sharpness(leica: MicroscopeManager) -> float:
     height = leica.core.getZPosition()
     return height
 
-def main(leica, vast, startup_info:dict = {"2.5x": 1, "4x": 0, "10x": 0, "White": 1, "Blue": 1, "Green": 0}, heights:dict = {"2.5x": 12, "4x": 12, "10x": 12}, fish_amount=1, experiment_name = "test"):  # TODO: heights should at least make some sense
+def main(leica, vast, startup_info:dict = {"2.5x": 1, "4x": 0, "10x": 0, "White": 1, "Blue": 1, "Green": 0}, heights:dict = {"2.5x": 12, "4x": 12, "10x": 12}, fish_amount=1, experiment_name = "test"):
     selected = [x for x in startup_info.keys() if startup_info[x] == 1]
     objectives = [x for x in selected if x.endswith("x")]
     filters = [x for x in selected if x not in objectives]

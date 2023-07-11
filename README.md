@@ -44,8 +44,15 @@ The user interface does not adhere to any of the rules for UI design, but allows
 
 # TODO
 
-- Refactor paths in code
 - Refactor paths in paper
 - Create paper reference
 - Change paper reference to repository
-- Change repository to public
+- Create pseudocode for UI structure and paper
+- Explain order of operations for external imaging
+- Update default heights for main external imaging implementation
+
+# Future work
+
+- Update zebrafish distances for occulars
+- VAST camera scripting through external imaging
+- Add imaging options for each objective instead of for all objectives simultaneously (UI)
