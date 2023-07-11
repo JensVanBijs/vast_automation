@@ -1,16 +1,14 @@
-# %% Imports and initialisation
-
 testing = False
 
 import tkinter as tk
-from arduino_implementation import main, create_vast_rows, create_vast_file, calc_positions
-from mm_code.mm_wrapper import MicroscopeManager
-from arduino_code.serial_wrapper import VastManager
+from external_imaging_implementation import main, create_vast_rows, create_vast_file, calc_positions
+from controllers.LEICA_control import MicroscopeManager
+from controllers.VAST_control import VastManager
 from tkinter import messagebox
 import os
 
 data_dir = os.path.dirname(os.path.abspath(__file__))
-data_dir = os.path.abspath(f"{data_dir}/../../data")
+data_dir = os.path.abspath(f"{data_dir}/data")
 
 if not testing:
     leica = MicroscopeManager()
@@ -34,8 +32,6 @@ key = {
 selected = dict()
 heights = dict()
 
-
-# %% UI creation
 
 objectives = ["TwoPointFive", "Four", "Ten"]
 fluorescence = ["BrightField", "GreenFluorescence", "RedFluorescence"]
@@ -62,7 +58,7 @@ for fluo in fluorescence:
 
 def execute():
     """Start executing the VAST loop through external imaging"""
-    # TODO: Vast scripting
+    # TODO: Vast camera scripting
     fish_amount = int(fishes.get())
     experiment_name = str(name.get())
     main(leica, vast, selected, heights, fish_amount, experiment_name)
@@ -132,3 +128,4 @@ tk.mainloop()
 # TODO: imaging options for each objective
 # TODO: Order of operation should be explained in the UI
 # TODO: UI structure should be better (not just a long list) --> Subwindows
+# BUG: Upgrade UI structure. Use pseudocode for this. Also put the pseudocode in the paper!

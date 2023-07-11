@@ -1,16 +1,12 @@
-# %% Imports and constants
-from mm_code.mm_wrapper import MicroscopeManager
+from controllers.LEICA_control import MicroscopeManager
 from time import sleep, time
-import os
 import mouse
 import keyboard
 
-# %% Define functions
 def focus_vast_ui() -> None:
     """Change the window focus from the current window to the VAST UI"""
     mouse.move(833, 10)
     mouse.click("left")
-
 
 def set_degrees(degrees: float) -> None:
     """Set the amount of degrees the VAST turns with a single click"""
@@ -19,7 +15,6 @@ def set_degrees(degrees: float) -> None:
     mouse.click("left")
     mouse.click("left")
     keyboard.write(degrees)
-
 
 def move_vast(direction: str, distance: int) -> None:
     times = distance // 1000
@@ -46,13 +41,11 @@ def move_vast(direction: str, distance: int) -> None:
         keyboard.write(str(remainder))
         sleep(0.1)
         mouse.move(*coor)
-        mouse.click("left")
-        
+        mouse.click("left")     
 
 def toggle_traylight() -> None:
     mouse.move(20, 963)
     mouse.click("left")
-
 
 def vast_picture(image_label: str) -> None:
     """Takes a picture using the VAST camera"""
@@ -76,12 +69,10 @@ def vast_picture(image_label: str) -> None:
     mouse.move(464, 506)
     mouse.click("left")
 
-
 def rotate_vast() -> None:
     """Clicks the rotate button in the VAST UI"""
     mouse.move(400, 925)
     mouse.click("left")
-
 
 def define_sharpness(leica: MicroscopeManager) -> float:
     """Asks the user to define the height at which the zebrafish is sharp"""
@@ -116,7 +107,6 @@ def check_start() -> None:
     input("Please check if the VAST camera target directory is empty.")
     input("Please check if the traylight is turned on.")
 
-# %% Define main function
 
 def microscope_loop(leica:MicroscopeManager, times, height, i=0):
     for idx in range(1, times+1):
@@ -184,7 +174,6 @@ def main(testing = False, occulars = []):
     toggle_traylight()
 
 
-# %% Execute main function (but not if the file is imported)
 if __name__ == "__main__":
     TEST =False
     OCCULARS = ["2.5x"]
@@ -192,5 +181,3 @@ if __name__ == "__main__":
     main(TEST, OCCULARS)
     runtime = time() - start
     print("The VAST is done after:", runtime)
-
-# TODO: Code cleanup

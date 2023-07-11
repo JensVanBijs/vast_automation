@@ -1,5 +1,3 @@
-#%%
-
 import serial
 from serial.tools.list_ports import comports
 from time import sleep
@@ -7,10 +5,9 @@ from time import sleep
 class VastManager:
 
     def __init__(self) -> None:
-        # header = b"\xff"
         self.serial_obj = self.connect_with_arduino()
-
         self.wait()
+
         response = self.serial_obj.read_all()
         if response != b"OK\n":
             raise ConnectionError("Connection with arduino failed")
@@ -20,7 +17,6 @@ class VastManager:
     def connect_with_arduino():
         for port, description, hwid in comports():
             if "Arduino Uno" in description:
-                print(port, description, hwid)
                 return serial.Serial(port, baudrate=115200)
 
     def wait(self):
@@ -72,6 +68,3 @@ class VastManager:
             return True
         else:
             return False
-
-
-# %%

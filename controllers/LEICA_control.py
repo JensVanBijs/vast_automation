@@ -1,4 +1,3 @@
-#%% Contains python functions wrapping the micromanager functions
 import pymmcore_plus
 import matplotlib.pyplot as plt
 import os
@@ -15,8 +14,9 @@ class MicroscopeManager:
         micromanager_directory = r"C:\Program Files\Micro-Manager-2.0"
         config_file = r"CTR6000.cfg"
 
+        # self.core.setDeviceAdapterSearchPaths([os.path.join(os.path.pardir(os.path.abspath(__file__)), "microscope_settings")])
         self.core.setDeviceAdapterSearchPaths([micromanager_directory])
-        os.add_dll_directory(r"C:\Program Files\Micro-Manager-2.0")
+        os.add_dll_directory(micromanager_directory)
         self.core.loadSystemConfiguration(os.path.join(micromanager_directory, config_file))
 
         self.device_tags = [x for x in self.core.getLoadedDevices()]
@@ -49,7 +49,7 @@ class MicroscopeManager:
         self.wait()
 
         dirpath = os.path.dirname(os.path.abspath(__file__))
-        with open(f"{dirpath}/config.json") as f:
+        with open(f"{dirpath}/microscope_settings/microscope_configuration.json") as f:
             self.config = json.load(f)
 
     def __str__(self) -> str:
@@ -120,13 +120,9 @@ class MicroscopeManager:
 
     
     def snap_picture(self):
-        # tmp_light = self.light
-        # tmp_brightness = self.brightness
         img = self.core.snap()
         img = img.view(dtype=np.uint8).reshape(img.shape[0], img.shape[1], 4)[...,2::-1]
         img = img[:,:,::-1]
-        # self.light = tmp_light
-        # self.brightness = tmp_brightness
         self.image = img
         return img
 
@@ -135,27 +131,17 @@ class MicroscopeManager:
 
     def save_picture(self, picture, filename):
         dirpath = os.path.dirname(os.path.abspath(__file__)) 
-        data_dir = os.path.abspath(f"{dirpath}/./../../../data/development_data/test_ui")
+        data_dir = os.path.abspath(f"{dirpath}/../data")
         plt.imshow(picture)
         img = Image.fromarray(picture)
-        #img.show()
         img.save(os.path.join(data_dir, filename))
-        # plt.axis('off')
-
-        # image_width, image_height, _ = picture.shape
-        
-        # # Calculate the DPI based on the image size
-        # dpi = max(image_width, image_height) / 10
-
-        # plt.savefig(os.path.join(data_dir, filename), bbox_inches='tight', pad_inches = 0, dpi=dpi)
 
     def switch_objective(self, name):
-        #get content from json
         objectives = self.config['objectives']
         if name not in objectives:
             raise ValueError(f"{name} is not a valid objective name.")
         objective = objectives[name]
-        #set everything
+
         self.objective = objective['turret_location']
         self.core.setZPosition(objective['bf_zheight'])
         self.brightness = objective['brightness']
@@ -170,9 +156,6 @@ class MicroscopeManager:
         if filter["fluorescence"] == 0:
             self.wait()
             self.light = 1
-
-    # def set_height(self, zpos):
-    #     self.core.setZPosition(zpos)
 
     def full_imaging(self, label, height, filters):
         objectives = {
@@ -199,55 +182,8 @@ class MicroscopeManager:
                 continue
             
 
-
-
 class MicroscopeManagerError(Exception):
 
     def __init__(self, message):
         super().__init__(message)
         self.message = message
-
-
-def test_function():
-    manager = MicroscopeManager()
-    manager.light = 1
-
-    manager.objective = 4
-    manager.brightness = 120
-    manager.core.setZPosition(10855.62365234375)
-    manager.wait()
-    sleep(1)
-    for i in range(3):
-        sleep(1)
-        manager.snap_picture()
-        manager.save_picture(manager.image, f"test_function_{i}_4x.png")
-        sleep(1)
-
-    manager.objective = 0
-    manager.brightness = 200
-    manager.core.setZPosition(4084.44001953125)
-    manager.wait()
-    sleep(1)
-    for i in range(3):
-        sleep(1)
-        manager.snap_picture()
-        manager.save_picture(manager.image, f"test_function_{i}_10x.png")
-        sleep(1)
-
-def test_function_2():
-    manager = MicroscopeManager()
-    manager.light = 1
-    for o in ["2.5x", "4x", "10x"]:
-        manager.switch_objective(o)
-        manager.wait()
-        sleep(1)
-        manager.snap_picture()
-        manager.save_picture(manager.image, f"test_function_{o}.png")
-
-def test_function_3():
-    manager = MicroscopeManager()
-    manager.light = 1
-    for f in ["Green", "Blue", "White"]:
-        manager.switch_filter(f)
-        manager.wait()
-        sleep(1)
