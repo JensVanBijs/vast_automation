@@ -1,4 +1,4 @@
-testing = False
+testing = True
 
 import tkinter as tk
 from external_imaging_implementation import main, create_vast_rows, create_vast_file, calc_positions
@@ -18,7 +18,25 @@ if not testing:
 
 master = tk.Tk()
 master.title("VAST automation control")
-master.geometry("1080x920")
+master.geometry("900x1000")
+
+metadata_frame = tk.Frame(master, width=300, height=100, highlightbackground="black", highlightthickness=2)
+metadata_frame.grid(row=0, column=1, pady=5)
+
+prepare_frame = tk.Frame(master, width=300, height=100, highlightbackground="black", highlightthickness=2)
+metadata_frame.grid(row=1, column=1, pady=5)
+
+objective_frame = tk.Frame(master, width=300, height=100, highlightbackground="black", highlightthickness=2)
+objective_frame.grid(row=2, column=0, pady=5)
+
+channel_frame = tk.Frame(master, width=300, height=100, highlightbackground="black", highlightthickness=2)
+channel_frame.grid(row=2, column=2, pady=5)
+
+calibration_frame = tk.Frame(master, width=300, height=100, highlightbackground="black", highlightthickness=2)
+calibration_frame.grid(row=3, column=1, pady=5)
+
+imaging_frame = tk.Frame(master, width=300, height=100, highlightbackground="black", highlightthickness=2)
+imaging_frame.grid(row=4, column=1, pady=5)
 
 key = {
     "GreenFluorescence": "Blue",
@@ -43,17 +61,17 @@ def click():
         exec(f"selected['{key[fluo]}'] = var_{fluo}.get()")
 
 
-tk.Label(master, text="Objectives").pack()
+tk.Label(objective_frame, text="Objectives").pack(fill=None, expand=False)
 for obj in objectives:
     exec(f"var_{obj} = tk.IntVar()")
-    exec(f"but_{obj} = tk.Checkbutton(master, text='{obj}', variable=var_{obj}, onvalue=1, offvalue=0, command=click)")
-    exec(f"but_{obj}.pack(side=tk.TOP)")
+    exec(f"but_{obj} = tk.Checkbutton(objective_frame, text='{obj}', variable=var_{obj}, onvalue=1, offvalue=0, command=click)")
+    exec(f"but_{obj}.pack(side=tk.TOP, fill=None, expand=False)")
 
-tk.Label(master, text="Fluorescence").pack()
+tk.Label(channel_frame, text="Fluorescence").pack(fill=None, expand=False)
 for fluo in fluorescence:
     exec(f"var_{fluo} = tk.IntVar()")
-    exec(f"but_{fluo} = tk.Checkbutton(master, text='{fluo}', variable=var_{fluo}, onvalue=1, offvalue=0, command=click)")
-    exec(f"but_{fluo}.pack(side=tk.TOP)")
+    exec(f"but_{fluo} = tk.Checkbutton(channel_frame, text='{fluo}', variable=var_{fluo}, onvalue=1, offvalue=0, command=click)")
+    exec(f"but_{fluo}.pack(side=tk.TOP, fill=None, expand=False)")
 
 
 def execute():
@@ -99,27 +117,28 @@ def test_picture():
     img = leica.snap_picture()
     leica.save_picture(img, "test.png")
     
-calibrate = tk.Button(master, text="Calibrate sharpness", command=define_sharpness)
-calibrate.pack()
+calibrate = tk.Button(calibration_frame, text="Calibrate sharpness", command=define_sharpness)
+calibrate.pack(fill=None, expand=False)
 
-empty = tk.Button(master, text="Image empty capilary", command=image_empty_capilary)
-empty.pack()
+empty = tk.Button(prepare_frame, text="Image empty capilary", command=image_empty_capilary)
+empty.pack(fill=None, expand=False)
 
-create = tk.Button(master, text="Create external imaging file", command=create_file)
-create.pack()
+create = tk.Button(calibration_frame, text="Create external imaging file", command=create_file)
+create.pack(fill=None, expand=False)
 
-execute = tk.Button(master, text="Start the imaging procedure", command=execute)
-execute.pack()
+test = tk.Button(imaging_frame, text="Take a testpicture", command=test_picture)
+test.pack(fill=None, expand=False)
 
-test = tk.Button(master, text="Take a testpicture", command=test_picture)
-test.pack()
+execute = tk.Button(imaging_frame, text="Start the imaging procedure", command=execute)
+execute.pack(fill=None, expand=False)
 
-tk.Label(master, text="Amount of fishes that are to imaged").pack()
-fishes = tk.Entry(master, width = 20)
-fishes.pack()
+tk.Label(metadata_frame, text="Experiment name").pack()
+name = tk.Entry(metadata_frame, width=20)
+name.pack(fill=None, expand=False)
 
-tk.Label(master, text="Experiment name").pack()
-name = tk.Entry(master, width=20)
-name.pack()
+tk.Label(metadata_frame, text="Amount of fishes that are to imaged").pack()
+fishes = tk.Entry(metadata_frame, width = 20)
+fishes.pack(fill=None, expand=False)
+
 
 tk.mainloop()
