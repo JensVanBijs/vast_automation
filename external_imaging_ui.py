@@ -18,7 +18,7 @@ if not testing:
 
 master = tk.Tk()
 master.title("VAST automation control")
-master.geometry("900x1000")
+# master.geometry("900x1000")
 
 metadata_frame = tk.Frame(master, width=300, height=100, highlightbackground="black", highlightthickness=2)
 metadata_frame.grid(row=0, column=1, pady=5)
