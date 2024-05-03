@@ -1,36 +1,5 @@
-from controllers.Usb2Comm import Usb2Comm
-from controllers.LED_Control import LedCtrl, LedSettings
-import clr
+from Usb2Comm import Usb2Comm
 import System
-import time
-
-def Test_LED_Control(led: int = 1):
-    usb = Usb2Comm().usb # Get USB driver for sending commands
-    ledSettings = LedSettings() # init Led settings object
-    ledControl = LedCtrl(usb) # init Led control object
-    ledControl.InitDac(ledSettings=ledSettings) # run init for Leds
-
-    time.sleep(1) 
-    for i in range(5):
-        ledControl.LedOnOff(i+1, False, 1) # turn all LEDs off
-
-    time.sleep(1) 
-
-    ledControl.LedOnOff(led, True, 1) # change current of LED 1
-    time.sleep(1)
-    ledControl.SetCurrent(led, 0.75)
-    time.sleep(1)
-    ledControl.SetCurrent(led, 0.5)
-    time.sleep(1)
-    ledControl.SetCurrent(led, 0.25)
-    time.sleep(1)
-    ledControl.SetCurrent(led, 1)
-    time.sleep(1)
-
-    ledControl.LedOnOff(led, False, 1)
-
-usb = Usb2Comm().usb
-
 
 class Motor():
     def __init__(self, usbComm: Usb2Comm, motIdx: int = 1):
@@ -44,7 +13,7 @@ class Motor():
         self._accel = 5
         self._pwrPct = 50
         self._speed = 500000
-        self.reverseDir = True
+        self.reverseDir = False
 
     def IniMotor(self, start: bool):
         if start and self.reverseDir:
@@ -82,16 +51,8 @@ class Motor():
         self.SendCmd(scmd)
     
     def ResetPos(self):
+        num = 120000.0
         self.usbComm.WriteSPI_Word(System.Byte(128), System.Byte(24), System.UInt16(0))
         data = (self.usbComm.ReadbackSPI_Word(System.UInt16(0)) & 1)
         cmd = f"aM{self._motorInd}V200P0" if (int(data) & 1) <= 0 else f"aM{self._motorInd}V200D0"
         self.SendCmd(cmd)
-    
-    
-
-
-
-
-mot = Motor(usb, 1)
-mot.IniMotor(True)
-mot.RotateToPos(180, 10, 200, 0)
