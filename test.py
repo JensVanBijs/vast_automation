@@ -112,6 +112,11 @@ class PumpCtrl():
         elapsedMs = (time.time() - self._timePrevCmd)/1000
         if elapsedMs < 30:
             time.sleep(30/1000 - elapsedMs)
+
+        flag = False
+        if self._usbComm.CommReadBack(System.Byte(self._usbComm.LARM_USRT), buf):
+            self._timePrevCmd = time.time()
+            
         
 
         return True, stat
