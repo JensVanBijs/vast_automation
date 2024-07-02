@@ -1,5 +1,6 @@
 from controllers.Usb2Comm import Usb2Comm
 from controllers.LED_Control import LedCtrl, LedSettings
+from controllers.Motor_Control import Motor
 from enum import Enum
 import clr
 import System
@@ -116,7 +117,39 @@ class PumpCtrl():
         flag = False
         if self._usbComm.CommReadBack(System.Byte(self._usbComm.LARM_USRT), buf):
             self._timePrevCmd = time.time()
-            
-        
+            if buf[idx1] != 0:
+                flag = int(buf[idx1]) & 32 > 1
+                num = int(buf[idx1]) & 15
+            else:
+                flag = False
 
-        return True, stat
+            stat = buf[idx1]
+            if self._verbose:
+                print(f"VAST: Pump {self._pumpAddr} status {stat}")
+
+        else:
+            flag = False
+
+        self._waitingForResponse = False
+        if self._terminated:
+            print("VAST: Pump control terminated")
+            self.Stop()
+        
+        if num > 0:
+            print(f"VAST: Pump {self._pumpAddr} error {num}")
+
+        return flag, stat
+    
+    def Stop(self):
+        self._terminated = True
+        if not self.SendPumpCmd(f"/{self._pumpAddr}T"):
+            return
+        self._terminated = False
+        self._pumpBusy = False
+
+
+clr.AddReference("C:/Program Files (x86)/Union Biometrica/VAST/CameraCtrl.dll")
+clr.AddReference("C:/Program Files (x86)/Union Biometrica/VAST/PvNet.dll")
+clr.AddReference("C:/Program Files (x86)/Union Biometrica/VAST/ProcessImage.dll")
+from CameraCtrl import AviRecSetts, CameraSettings, AVT_Camera
+

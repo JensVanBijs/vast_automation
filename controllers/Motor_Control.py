@@ -1,4 +1,4 @@
-from Usb2Comm import Usb2Comm
+from .Usb2Comm import Usb2Comm
 import System
 
 class Motor():
