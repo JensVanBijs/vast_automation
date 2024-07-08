@@ -148,8 +148,29 @@ class PumpCtrl():
         self._pumpBusy = False
 
 
-clr.AddReference("C:/Program Files (x86)/Union Biometrica/VAST/CameraCtrl.dll")
-clr.AddReference("C:/Program Files (x86)/Union Biometrica/VAST/PvNet.dll")
-clr.AddReference("C:/Program Files (x86)/Union Biometrica/VAST/ProcessImage.dll")
-from CameraCtrl import AviRecSetts, CameraSettings, AVT_Camera
+from msl.loadlib import Server32, Client64, load_library
+
+# class PvAPI32(Server32):
+#     def __init__(self, host, port, **kwargs):
+#         super(PvAPI32, self).__init__("./Drivers/PvAPI.dll", "cdll", host, port)
+#         self.version = self.lib.PvVersion()
+
+# class PvAPI(Client64):
+#     def __init__(self):
+#         super(PvAPI, self).__init__(module32="PvAPI32")
+
+#     def __getattr__(self, name):
+#         def send(*args, **kwargs):
+#             return self.request(name, *args, **kwargs)
+#         return send
+
+PvAPI = load_library.LoadLibrary("C:/Program Files/Allied Vision Technologies/GigESDK/bin-pc/x64/PvAPI.dll", 'cdll')
+PvNET = load_library.LoadLibrary("C:/Program Files/Allied Vision Technologies/GigESDK/bin-pc/x64/PvNET.dll", 'clr')
+CameraCtrl = load_library.LoadLibrary("C:/Program Files (x86)/Union Biometrica.win7 08-12-22/VAST/CameraCtrl.dll", 'clr')
+ProcessImage = load_library.LoadLibrary("C:/Program Files (x86)/Union Biometrica.win7 08-12-22/VAST/ProcessImage.dll", 'clr')
+# clr.AddReference("C:/Program Files (x86)/Union Biometrica.win7 08-12-22/VAST/PvNET.dll")
+# clr.AddReference("C:/Program Files (x86)/Union Biometrica.win7 08-12-22/VAST/CameraCtrl.dll")
+# clr.AddReference("C:/Program Files (x86)/Union Biometrica.win7 08-12-22/VAST/ProcessImage.dll")
+
+CameraSttgs = CameraCtrl.lib.CameraCtrl.CameraSettings()
 
