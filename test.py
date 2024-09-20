@@ -148,29 +148,47 @@ class PumpCtrl():
         self._pumpBusy = False
 
 
-from msl.loadlib import Server32, Client64, load_library
+# from msl.loadlib import Server32, Client64, load_library
 
-# class PvAPI32(Server32):
-#     def __init__(self, host, port, **kwargs):
-#         super(PvAPI32, self).__init__("./Drivers/PvAPI.dll", "cdll", host, port)
-#         self.version = self.lib.PvVersion()
+# PvAPI = load_library.LoadLibrary("C:/Program Files (x86)/Union Biometrica.win7 08-12-22/VAST/PvAPI.dll", 'cdll')
+# PvNET = load_library.LoadLibrary("C:/Program Files (x86)/Union Biometrica.win7 08-12-22/VAST/PvNET.dll", 'clr') 
+# ProcessImage = load_library.LoadLibrary("C:/Program Files (x86)/Union Biometrica.win7 08-12-22/VAST/ProcessImage.dll", 'clr')
+# CameraCtrl = load_library.LoadLibrary("C:/Program Files (x86)/Union Biometrica.win7 08-12-22/VAST/CameraCtrl.dll", 'clr')
 
-# class PvAPI(Client64):
-#     def __init__(self):
-#         super(PvAPI, self).__init__(module32="PvAPI32")
+# CameraSttgs = CameraCtrl.lib.CameraCtrl.CameraSettings()
+# AvtSetts = CameraCtrl.lib.CameraCtrl.AviRecSetts()
+# AVTCamera = CameraCtrl.lib.CameraCtrl.AVT_Camera()
+# Cam = AVTCamera.IniCamera(CameraSttgs)
 
-#     def __getattr__(self, name):
-#         def send(*args, **kwargs):
-#             return self.request(name, *args, **kwargs)
-#         return send
+# am.DoSCtreaming(CameraCtrl.lib.CameraCtrl.StreamingType.Simple)
 
-PvAPI = load_library.LoadLibrary("C:/Program Files/Allied Vision Technologies/GigESDK/bin-pc/x64/PvAPI.dll", 'cdll')
-PvNET = load_library.LoadLibrary("C:/Program Files/Allied Vision Technologies/GigESDK/bin-pc/x64/PvNET.dll", 'clr')
-CameraCtrl = load_library.LoadLibrary("C:/Program Files (x86)/Union Biometrica.win7 08-12-22/VAST/CameraCtrl.dll", 'clr')
-ProcessImage = load_library.LoadLibrary("C:/Program Files (x86)/Union Biometrica.win7 08-12-22/VAST/ProcessImage.dll", 'clr')
-# clr.AddReference("C:/Program Files (x86)/Union Biometrica.win7 08-12-22/VAST/PvNET.dll")
-# clr.AddReference("C:/Program Files (x86)/Union Biometrica.win7 08-12-22/VAST/CameraCtrl.dll")
-# clr.AddReference("C:/Program Files (x86)/Union Biometrica.win7 08-12-22/VAST/ProcessImage.dll")
+# time.sleep(10)
+# Cam.CameraStopCapture()
 
-CameraSttgs = CameraCtrl.lib.CameraCtrl.CameraSettings()
 
+# clr.AddReference("C:/Program Files (x86)/Union Biometrica.win7 08-12-22/VAST/PvAPI.dll")
+clr.AddReference("C:/Program Files (x86)/Union Biometrica.win7 08-12-22/VAST/PvNET.dll")
+clr.AddReference("C:/Program Files (x86)/Union Biometrica.win7 08-12-22/VAST/ProcessImage.dll")
+clr.AddReference("C:/Program Files (x86)/Union Biometrica.win7 08-12-22/VAST/CameraCtrl.dll")
+
+from CameraCtrl import CameraSettings, AviRecSetts, AVT_Camera, StreamingType
+
+CameraSttgs = CameraSettings()
+AvtSetts = AviRecSetts()
+AVTCamera = AVT_Camera()
+AVTCamera.IniCamera(CameraSttgs)
+
+ledsttgs = LedSettings()
+ledctrl = LedCtrl(usb)
+ledctrl.InitDac(ledsttgs)
+ledctrl.SetCurrent(1, 0.25)
+ledctrl.LedOnOff(1, True, 1)
+
+AVTCamera.UpdateCameraSettings.Overloads[CameraSettings](CameraSttgs)
+AVTCamera.DoStreaming(StreamingType.Simple)
+
+
+
+time.sleep(10)
+ledctrl.LedOnOff(1, False, 0)
+AVTCamera.CameraStopCapture()

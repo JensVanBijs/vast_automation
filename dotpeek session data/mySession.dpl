@@ -6,4 +6,6 @@
   <Assembly Path="C:\Windows\Microsoft.NET\Framework64\v4.0.30319\System.Data.dll" />
   <Assembly Path="C:\Windows\Microsoft.NET\Framework64\v4.0.30319\System.Web.dll" />
   <PhysicalFolder Path="C:\Program Files (x86)\Union Biometrica.win7 08-12-22" Loaded="True" />
+  <Assembly Path="C:\Program Files\Allied Vision Technologies\GigESDK\bin-pc\x64\PvNET.dll" />
+  <Assembly Path="C:\Program Files\Allied Vision Technologies\GigESDK\bin-pc\PvNET.dll" />
 </AssemblyExplorer>
