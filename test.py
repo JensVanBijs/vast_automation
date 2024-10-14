@@ -7,32 +7,8 @@ import System
 import time
 import threading
 
-def Test_LED_Control(led: int = 1):
-    usb = Usb2Comm().usb # Get USB driver for sending commands
-    ledSettings = LedSettings() # init Led settings object
-    ledControl = LedCtrl(usb) # init Led control object
-    ledControl.InitDac(ledSettings=ledSettings) # run init for Leds
-
-    time.sleep(1) 
-    for i in range(5):
-        ledControl.LedOnOff(i+1, False, 1) # turn all LEDs off
-
-    time.sleep(1) 
-
-    ledControl.LedOnOff(led, True, 1) # change current of LED 1
-    time.sleep(1)
-    ledControl.SetCurrent(led, 0.75)
-    time.sleep(1)
-    ledControl.SetCurrent(led, 0.5)
-    time.sleep(1)
-    ledControl.SetCurrent(led, 0.25)
-    time.sleep(1)
-    ledControl.SetCurrent(led, 1)
-    time.sleep(1)
-
-    ledControl.LedOnOff(led, False, 1)
-
-usb = Usb2Comm().usb
+from vimba import Vimba, Camera, Frame, FrameStatus, intersect_pixel_formats, OPENCV_PIXEL_FORMATS, VimbaFeatureError
+import cv2
 
 class PumpCtrl():
     def __init__(self, usbComm: Usb2Comm):
@@ -147,48 +123,78 @@ class PumpCtrl():
         self._terminated = False
         self._pumpBusy = False
 
+def turn_on_led(usb) -> LedCtrl:
+    ledsttgs = LedSettings()
+    ledctrl = LedCtrl(usb)
+    ledctrl.InitDac(ledsttgs)
+    ledctrl.SetCurrent(1, 0.25)
+    ledctrl.LedOnOff(1, True, 1)
+    return ledctrl
 
-# from msl.loadlib import Server32, Client64, load_library
+def setup_camera(camera: Camera):
+    with camera:
+        try: 
+            camera.get_feature_by_name('Height').set(480)   
+            camera.get_feature_by_name('Width').set(640)
+        except (AttributeError, VimbaFeatureError):
+            pass
 
-# PvAPI = load_library.LoadLibrary("C:/Program Files (x86)/Union Biometrica.win7 08-12-22/VAST/PvAPI.dll", 'cdll')
-# PvNET = load_library.LoadLibrary("C:/Program Files (x86)/Union Biometrica.win7 08-12-22/VAST/PvNET.dll", 'clr') 
-# ProcessImage = load_library.LoadLibrary("C:/Program Files (x86)/Union Biometrica.win7 08-12-22/VAST/ProcessImage.dll", 'clr')
-# CameraCtrl = load_library.LoadLibrary("C:/Program Files (x86)/Union Biometrica.win7 08-12-22/VAST/CameraCtrl.dll", 'clr')
+        try:
+            camera.ExposureAuto.set('Continuous')
+            camera.BalanceWhiteAuto.set('Continuous')
+            camera.GVSPAdjustPacketSize.run()
 
-# CameraSttgs = CameraCtrl.lib.CameraCtrl.CameraSettings()
-# AvtSetts = CameraCtrl.lib.CameraCtrl.AviRecSetts()
-# AVTCamera = CameraCtrl.lib.CameraCtrl.AVT_Camera()
-# Cam = AVTCamera.IniCamera(CameraSttgs)
+            while not camera.GVSPAdjustPacketSize.is_done():
+                pass
 
-# am.DoSCtreaming(CameraCtrl.lib.CameraCtrl.StreamingType.Simple)
+        except (AttributeError, VimbaFeatureError):
+            pass
 
-# time.sleep(10)
-# Cam.CameraStopCapture()
+        fmts = camera.get_pixel_formats()
+        fmts = intersect_pixel_formats(fmts, OPENCV_PIXEL_FORMATS)
+        if fmts:
+            camera.set_pixel_format(fmts[0])
+        else:
+            raise Exception("No matching pixel format available")
 
+class Handler:
+    def __init__(self):
+        self.shutdown = threading.Event()
 
-# clr.AddReference("C:/Program Files (x86)/Union Biometrica.win7 08-12-22/VAST/PvAPI.dll")
-clr.AddReference("C:/Program Files (x86)/Union Biometrica.win7 08-12-22/VAST/PvNET.dll")
-clr.AddReference("C:/Program Files (x86)/Union Biometrica.win7 08-12-22/VAST/ProcessImage.dll")
-clr.AddReference("C:/Program Files (x86)/Union Biometrica.win7 08-12-22/VAST/CameraCtrl.dll")
+    def __call__(self, camera: Camera, frame: Frame):
+        ENTER_KEY_CODE = 13
+        key = cv2.waitKey(1)
+        if key == ENTER_KEY_CODE:
+            self.shutdown.set()
+            return
+        
+        if frame.get_status() == FrameStatus.Complete:
+            cv2.imshow(f'Camera {camera.get_name()}', frame.as_opencv_image())
+        
+        camera.queue_frame(frame)
 
-from CameraCtrl import CameraSettings, AviRecSetts, AVT_Camera, StreamingType
+def main():
+    usb = Usb2Comm().usb
+    ledctrl = turn_on_led(usb)
+    with Vimba.get_instance() as vimba:
+        cameras = vimba.get_all_cameras()
+        if not cameras:
+            raise Exception("No cameras available")
+    
+        camera: Camera
+        with cameras[0] as camera:
+            setup_camera(camera)
+            handler = Handler()
+        
+            try:
+                camera.start_streaming(handler=handler, buffer_count=10)
+                handler.shutdown.wait()
 
-CameraSttgs = CameraSettings()
-AvtSetts = AviRecSetts()
-AVTCamera = AVT_Camera()
-AVTCamera.IniCamera(CameraSttgs)
+            finally:
+                camera.stop_streaming()
+                ledctrl.LedOnOff(1, False, 1)
 
-ledsttgs = LedSettings()
-ledctrl = LedCtrl(usb)
-ledctrl.InitDac(ledsttgs)
-ledctrl.SetCurrent(1, 0.25)
-ledctrl.LedOnOff(1, True, 1)
+    cv2.destroyAllWindows()
 
-AVTCamera.UpdateCameraSettings.Overloads[CameraSettings](CameraSttgs)
-AVTCamera.DoStreaming(StreamingType.Simple)
-
-
-
-time.sleep(10)
-ledctrl.LedOnOff(1, False, 0)
-AVTCamera.CameraStopCapture()
+if __name__ == "__main__":
+    main()
