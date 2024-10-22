@@ -14,11 +14,11 @@ def turn_on_led(usb) -> LedCtrl:
 
 def setup_camera(camera: Camera):
     with camera:
-        try: 
-            camera.get_feature_by_name('Height').set(480)   
-            camera.get_feature_by_name('Width').set(640)
-        except (AttributeError, VimbaFeatureError):
-            pass
+        # try: 
+        #     camera.get_feature_by_name('Height').set(480)   
+        #     camera.get_feature_by_name('Width').set(640)
+        # except (AttributeError, VimbaFeatureError):
+        #     pass
 
         try:
             camera.ExposureAuto.set('Continuous')

@@ -39,7 +39,7 @@ class Motor():
             print("RotateToPos does nothing")
             return
         
-        scmd = f"aM1L{acc}V{vel}"
+        scmd = f"aM1V{vel}"
         if degree > 0.0:
             scmd += f"P{num1}"
         else:
