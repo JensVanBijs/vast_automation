@@ -16,12 +16,11 @@ import numpy as np
 
 usb = Usb2Comm().usb
 motor = Motor(usb)
-# microscope = MicroscopeManager()
+microscope = MicroscopeManager()
 led = turn_on_led(usb)
 handler = Handler()
 
 def create_img_directory():
-    #check if Results directory exists
     if not os.path.exists("Results"):
         os.makedirs("Results")
     now = datetime.datetime.now()
@@ -34,30 +33,52 @@ def destroy_empty_img_dir(dir):
     if not os.listdir(dir):
         os.rmdir(dir)
 
+def get_control_images(motor, led):
+    camera: Camera
+    with Vimba.get_instance() as vimba:
+        cameras = vimba.get_all_cameras()
+        with cameras[0] as camera:
+            setup_camera(camera)
+            motor.IniMotor(True)
+            dir = create_img_directory()
+            try:
+                for i in range(500):
+                    img = camera.get_frame()
+                    img_array = img.as_opencv_image()
+                    cv2.imwrite(f"{dir}/img_{i}.png", img_array)
+                    motor.RotateToPos(1, 10, 300, 20)
+                    time.sleep(0.2)
+            except Exception as e:
+                print(e)
+            finally:
+                destroy_empty_img_dir(dir)
+                cv2.destroyAllWindows()
+                led.LedOnOff(1, False, 1)
 
-camera: Camera
-with Vimba.get_instance() as vimba:
-    cameras = vimba.get_all_cameras()
-    with cameras[0] as camera:
-        setup_camera(camera)
-        motor.IniMotor(True)
-        dir = create_img_directory()
-        try:
-            for i in range(500):
-                img = camera.get_frame()
-                img_array = img.as_opencv_image()
-                cv2.imwrite(f"{dir}/img_{i}.png", img_array)
-                motor.RotateToPos(1, 10, 300, 20)
-                time.sleep(0.2)
-        except Exception as e:
-            print(e)
-        finally:
-            destroy_empty_img_dir(dir)
-            cv2.destroyAllWindows()
-            led.LedOnOff(1, False, 1)
+def get_leica_images(motor, led, zoom: list, fluorescence: list, microscope: MicroscopeManager):
+    motor.IniMotor(True)
+    led.LedOnOff(1, False, 1)
+    dir = create_img_directory()
+    for z in zoom:
+        for f in fluorescence:
+            microscope.switch_objective(z)
+            microscope.switch_filter(f)
+            snap_images(motor, microscope, dir)
+    snap_images(motor, microscope, dir)
 
+def snap_images(motor, microscope, dir):
+    try:
+        for i in range(500):
+            img = microscope.snap_picture()
+            cv2.imwrite(f"{dir}/img_{i}.png", img)
+            motor.RotateToPos(1, 10, 300, 20)
+            time.sleep(0.2)
+    except Exception as e:
+        print(e)
+    finally:
+        destroy_empty_img_dir(dir)
+        cv2.destroyAllWindows()
 
-
-    
-
-
+microscope.light = 1
+microscope.switch_objective("2.5x")
+microscope.switch_filter("Blue")

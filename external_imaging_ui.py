@@ -1,4 +1,4 @@
-testing = True
+testing = False
 
 import tkinter as tk
 from external_imaging_implementation import main, create_vast_rows, create_vast_file, calc_positions
