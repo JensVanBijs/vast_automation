@@ -9,15 +9,15 @@ import threading
 import os
 import datetime
 
-from vimba import Vimba, Camera, Frame, FrameStatus, PixelFormat
+from vimba import Vimba, Camera, VimbaFeatureError, Frame, FrameStatus, PixelFormat
 import cv2
 from PIL import Image
 import numpy as np
 
 usb = Usb2Comm().usb
 motor = Motor(usb)
-microscope = MicroscopeManager()
-led = turn_on_led(usb)
+# microscope = MicroscopeManager()
+led = turn_on_led(usb, 0.7)
 handler = Handler()
 
 def create_img_directory():
@@ -39,6 +39,13 @@ def get_control_images(motor, led):
         cameras = vimba.get_all_cameras()
         with cameras[0] as camera:
             setup_camera(camera)
+            try: 
+                camera.get_feature_by_name('Height').set(480)   
+                camera.get_feature_by_name('Width').set(1020)
+            except (AttributeError, VimbaFeatureError) as e:
+                print("Failed to set camera position")
+                print(e)
+                pass
             motor.IniMotor(True)
             dir = create_img_directory()
             try:
@@ -79,6 +86,6 @@ def snap_images(motor, microscope, dir):
         destroy_empty_img_dir(dir)
         cv2.destroyAllWindows()
 
-microscope.light = 1
-microscope.switch_objective("2.5x")
-microscope.switch_filter("Blue")
+# microscope.light = 1
+# microscope.switch_objective("2.5x")
+# microscope.switch_filter("Blue")

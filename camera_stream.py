@@ -4,21 +4,23 @@ from vimba import Vimba, Camera, Frame, FrameStatus, intersect_pixel_formats, OP
 import cv2
 import threading
 
-def turn_on_led(usb) -> LedCtrl:
+def turn_on_led(usb, current: float) -> LedCtrl:
+    if type(current) is not float:
+        raise ValueError("Current must be a float")
     ledsttgs = LedSettings()
     ledctrl = LedCtrl(usb)
     ledctrl.InitDac(ledsttgs)
-    ledctrl.SetCurrent(1, 0.25)
+    ledctrl.SetCurrent(1, current)
     ledctrl.LedOnOff(1, True, 1)
     return ledctrl
 
 def setup_camera(camera: Camera):
     with camera:
-        # try: 
-        #     camera.get_feature_by_name('Height').set(480)   
-        #     camera.get_feature_by_name('Width').set(640)
-        # except (AttributeError, VimbaFeatureError):
-        #     pass
+        try: 
+            camera.get_feature_by_name('Height').set(720)   
+            camera.get_feature_by_name('Width').set(1280)
+        except (AttributeError, VimbaFeatureError):
+            pass
 
         try:
             camera.ExposureAuto.set('Continuous')
@@ -56,7 +58,7 @@ class Handler:
 
 def main():
     usb = Usb2Comm().usb
-    ledctrl = turn_on_led(usb)
+    ledctrl = turn_on_led(usb, 1.0)
     with Vimba.get_instance() as vimba:
         cameras = vimba.get_all_cameras()
         if not cameras:
