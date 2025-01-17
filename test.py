@@ -16,8 +16,11 @@ import numpy as np
 
 usb = Usb2Comm().usb
 motor = Motor(usb)
-# microscope = MicroscopeManager()
-led = turn_on_led(usb, 0.7)
+# led = turn_on_led(usb, 0.7)
+ledcnt = LedCtrl(usb)
+ledcnt.InitDac(LedSettings())
+ledcnt.SetCurrent(1, 0.7)
+ledcnt.LedOnOff(1, False, 1)
 handler = Handler()
 
 def create_img_directory():
@@ -86,6 +89,10 @@ def snap_images(motor, microscope, dir):
         destroy_empty_img_dir(dir)
         cv2.destroyAllWindows()
 
-# microscope.light = 1
-# microscope.switch_objective("2.5x")
-# microscope.switch_filter("Blue")
+if __name__ == "__main__":
+    microscope = MicroscopeManager()
+    microscope.light = 1
+    microscope.switch_objective("2.5x")
+    microscope.switch_filter("White")
+    test = microscope.snap_picture()
+    exit(0)
