@@ -14,48 +14,46 @@ import cv2
 from PIL import Image
 import numpy as np
 
-usb = Usb2Comm().usb
-motor = Motor(usb)
-# led = turn_on_led(usb, 0.7)
-ledcnt = LedCtrl(usb)
-ledcnt.InitDac(LedSettings())
-ledcnt.SetCurrent(1, 0.7)
-ledcnt.LedOnOff(1, False, 1)
-handler = Handler()
 
-def create_img_directory():
+
+def create_img_directory(date_time: str, control: bool = False, zoom: str = None, fluorescence: str = None):
     if not os.path.exists("Results"):
         os.makedirs("Results")
-    now = datetime.datetime.now()
-    date_time = now.strftime("%Y-%m-%d %H-%M-%S")
-    os.makedirs("Results/" + date_time)
-    return "Results/" + date_time
+    
+    dir_string = "Results/" + date_time
+    if control:
+        dir_string += "/Control"
+    else:
+        dir_string += f'/{zoom}/{fluorescence}'
+    os.makedirs(dir_string)
+    return dir_string
 
 def destroy_empty_img_dir(dir):
     import os
     if not os.listdir(dir):
         os.rmdir(dir)
 
-def get_control_images(motor, led):
+def get_control_images(motor, led, date_time):
     camera: Camera
     with Vimba.get_instance() as vimba:
         cameras = vimba.get_all_cameras()
         with cameras[0] as camera:
             setup_camera(camera)
             try: 
-                camera.get_feature_by_name('Height').set(480)   
-                camera.get_feature_by_name('Width').set(1020)
+                camera.get_feature_by_name('Height').set(250)   
+                camera.get_feature_by_name('Width').set(1024)
             except (AttributeError, VimbaFeatureError) as e:
                 print("Failed to set camera position")
                 print(e)
                 pass
             motor.IniMotor(True)
-            dir = create_img_directory()
+            led.LedOnOff(1, True, 1)
+            dir = create_img_directory(date_time, control = True)
             try:
                 for i in range(500):
                     img = camera.get_frame()
                     img_array = img.as_opencv_image()
-                    cv2.imwrite(f"{dir}/img_{i}.png", img_array)
+                    cv2.imwrite(f"{dir}/img_{i}.tiff", img_array)
                     motor.RotateToPos(1, 10, 300, 20)
                     time.sleep(0.2)
             except Exception as e:
@@ -65,22 +63,23 @@ def get_control_images(motor, led):
                 cv2.destroyAllWindows()
                 led.LedOnOff(1, False, 1)
 
-def get_leica_images(motor, led, zoom: list, fluorescence: list, microscope: MicroscopeManager):
+def get_leica_images(motor, led, zoom: list, fluorescence: list, microscope: MicroscopeManager, date_time: str):
     motor.IniMotor(True)
     led.LedOnOff(1, False, 1)
-    dir = create_img_directory()
     for z in zoom:
         for f in fluorescence:
-            microscope.switch_objective(z)
+            dir = create_img_directory(date_time=date_time, control=False, zoom=z, fluorescence=f)
             microscope.switch_filter(f)
+            microscope.switch_objective(z)
+            microscope.brightness = 50
+            microscope.light = 1
             snap_images(motor, microscope, dir)
-    snap_images(motor, microscope, dir)
 
 def snap_images(motor, microscope, dir):
     try:
         for i in range(500):
             img = microscope.snap_picture()
-            cv2.imwrite(f"{dir}/img_{i}.png", img)
+            cv2.imwrite(f"{dir}/img_{i}.tiff", img)
             motor.RotateToPos(1, 10, 300, 20)
             time.sleep(0.2)
     except Exception as e:
@@ -90,9 +89,20 @@ def snap_images(motor, microscope, dir):
         cv2.destroyAllWindows()
 
 if __name__ == "__main__":
+    usb = Usb2Comm().usb
+    motor = Motor(usb)
+    ledcnt = LedCtrl(usb)
+    ledcnt.InitDac(LedSettings())
+    ledcnt.SetCurrent(1, 0.5)
+    handler = Handler()
     microscope = MicroscopeManager()
-    microscope.light = 1
-    microscope.switch_objective("2.5x")
-    microscope.switch_filter("White")
-    test = microscope.snap_picture()
-    exit(0)
+    now = datetime.datetime.now()
+    date_time = now.strftime("%Y-%m-%d %H-%M-%S")
+    get_control_images(motor, ledcnt, date_time)
+    get_leica_images(motor=motor, 
+                     led=ledcnt, 
+                     zoom=['2.5x'], 
+                     fluorescence=['White'], 
+                     microscope=microscope,
+                     date_time=date_time)
+    
