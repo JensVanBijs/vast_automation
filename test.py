@@ -70,15 +70,17 @@ def get_leica_images(motor, led, zoom: list, fluorescence: list, microscope: Mic
         for f in fluorescence:
             dir = create_img_directory(date_time=date_time, control=False, zoom=z, fluorescence=f)
             microscope.switch_filter(f)
+            microscope.wait()
             microscope.switch_objective(z)
-            microscope.brightness = 50
+            microscope.wait()
             microscope.light = 1
             snap_images(motor, microscope, dir)
 
-def snap_images(motor, microscope, dir):
+def snap_images(motor: Motor, microscope: MicroscopeManager, dir: str):
     try:
         for i in range(500):
             img = microscope.snap_picture()
+            microscope.wait()
             cv2.imwrite(f"{dir}/img_{i}.tiff", img)
             motor.RotateToPos(1, 10, 300, 20)
             time.sleep(0.2)
