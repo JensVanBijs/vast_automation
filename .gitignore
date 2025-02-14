@@ -5,3 +5,4 @@ Drivers/
 vastenv/
 controllers/test.py
 Results/
+*.zip
