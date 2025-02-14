@@ -12,7 +12,7 @@ class MicroscopeManager:
     def __init__(self) -> None:
         self.core = pymmcore_plus.CMMCorePlus()
         micromanager_directory = r"C:\Program Files\Micro-Manager-2.0"
-        config_file = r"CTR6000.cfg"
+        config_file = r"CTR6000-test.cfg"
 
         # self.core.setDeviceAdapterSearchPaths([os.path.join(os.path.pardir(os.path.abspath(__file__)), "microscope_settings")])
         self.core.setDeviceAdapterSearchPaths([micromanager_directory])

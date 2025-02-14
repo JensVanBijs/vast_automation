@@ -48,6 +48,8 @@ os.add_dll_directory(micromanager_directory)
 core.loadDevice("COM1", "SerialManager", "COM1")
 core.loadDevice("Scope", "LeicaDMI", "Scope")
 core.loadDevice("Transmitted Light", "LeicaDMI", "Transmitted Light")
+core.loadDevice("IL-Turret", "LeicaDMI", "IL-Turret")
+core.loadDevice("IL-Shutter", "LeicaDMI", "IL-Shutter")
 core.loadDevice('BaumerOptronic','BaumerOptronic','BaumerOptronic')
 
 # pre-init props -----------------------
@@ -65,6 +67,8 @@ core.setProperty("COM1", "Fast USB to Serial", "Disable")
 
 # parent labels -------------------------
 core.setParentLabel("Transmitted Light", "Scope")
+core.setParentLabel("IL-Turret", "Scope")
+core.setParentLabel("IL-Shutter", "Scope")
 
 # Initialize devices -------------------
 # equivalent of config: Property,Core,Initialize,1
@@ -74,7 +78,7 @@ core.initializeAllDevices()
 # equivalent of config: Property,Core,Camera,BaumerOptronic
 core.setCameraDevice("BaumerOptronic")
 # equivalent of config: Property,Core,AutoShutter,1
-core.setAutoShutter(True)  # <--------
+core.setShutterOpen(True)  # <--------
 
 # turn on light
 tl = pymmcore_plus.Device("Transmitted Light", core)

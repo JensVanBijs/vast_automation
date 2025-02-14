@@ -1,0 +1,532 @@
+{
+"Summary": {
+  "MicroManagerVersion": "2.0.0",
+  "MetadataVersion": "12.0.0",
+  "ChannelGroup": "Imageing",
+  "ChNames": [
+    "Default"
+  ],
+  "AxisOrder": [
+    "channel",
+    "time",
+    "z",
+    "position"
+  ],
+  "TimeFirst": false,
+  "SlicesFirst": true,
+  "Width": 0,
+  "Height": 0,
+  "UserData": {}
+},
+"FrameKey-0-0-0": {
+  "UUID": "050f9277-b0c5-465b-ac20-78b7e4cd6ea0",
+  "Camera": "BaumerOptronic",
+  "Binning": 1,
+  "ROI": "0-0-864-648",
+  "BitDepth": 8,
+  "ReceivedTime": "2025-02-14 19:50:19.985 +0100",
+  "PixelSizeUm": 0.0,
+  "PixelSizeAffine": "0.0;0.0;0.0;0.0;0.0;0.0",
+  "PositionName": "Default",
+  "XPositionUm": -0.0,
+  "YPositionUm": 12436.5234375,
+  "ZPositionUm": 24409.06732421875,
+  "COM1-AnswerTimeout": "5000.0000",
+  "COM1-BaudRate": "19200",
+  "COM1-DTR": "Disable",
+  "COM1-DataBits": "8",
+  "COM1-DelayBetweenCharsMs": "0.0000",
+  "COM1-Description": "Serial port driver (boost:asio)",
+  "COM1-Fast USB to Serial": "Disable",
+  "COM1-Handshaking": "Off",
+  "COM1-Name": "COM1",
+  "COM1-Parity": "None",
+  "COM1-StopBits": "1",
+  "COM1-Verbose": "1",
+  "BaumerOptronic-Binning": "1",
+  "BaumerOptronic-BitDepth": "8",
+  "BaumerOptronic-CameraID": "V1.0",
+  "BaumerOptronic-CameraName": "BaumerOptronic-MultiMode",
+  "BaumerOptronic-Description": "Baumer Optronic Adapter for Leica Cameras",
+  "BaumerOptronic-Exposure": "100.0400",
+  "BaumerOptronic-Gain": "1.0000",
+  "BaumerOptronic-Name": "BaumerOptronic",
+  "BaumerOptronic-PixelType": "32bitRGB",
+  "BaumerOptronic-TransposeCorrection": "0",
+  "BaumerOptronic-TransposeMirrorX": "0",
+  "BaumerOptronic-TransposeMirrorY": "0",
+  "BaumerOptronic-TransposeXY": "0",
+  "Scope-AnswerTimeOut": "250.0000",
+  "Scope-Description": "Leica microscope CAN bus adapter",
+  "Scope-Method": "TL BF",
+  "Scope-Microscope Firmware": "SYS.HEX V01.36.3451",
+  "Scope-Microscope Stand": "DM6000B-CS",
+  "Scope-Name": "Scope",
+  "Scope-Port": "COM1",
+  "IL-Turret-Description": "Incident Light Reflector Turret",
+  "IL-Turret-Label": "2-N21",
+  "IL-Turret-Name": "Dichroics turret",
+  "IL-Turret-State": "1",
+  "ObjectiveTurret-Article Number": "250",
+  "ObjectiveTurret-Description": "Objective Turret",
+  "ObjectiveTurret-Immersion Medium": "Dry",
+  "ObjectiveTurret-Label": "3-2x 0.07na",
+  "ObjectiveTurret-Name": "Objective turret",
+  "ObjectiveTurret-State": "2",
+  "TL-FieldDiaphragm-Name": "TL-FieldDiaphragm",
+  "TL-FieldDiaphragm-Position": "14",
+  "TL-ApertureDiaphragm-Name": "TL-ApertureDiaphragm",
+  "TL-ApertureDiaphragm-Position": "9",
+  "IL-FieldDiaphragm-Name": "IL-FieldDiaphragm",
+  "IL-FieldDiaphragm-Position": "1",
+  "IL-ApertureDiaphragm-Name": "IL-ApertureDiaphragm",
+  "IL-ApertureDiaphragm-Position": "1",
+  "FocusDrive-Acceleration": "1",
+  "FocusDrive-Speed": "1",
+  "MagnificationChanger-Description": "Motorized Magnifier",
+  "MagnificationChanger-Name": "Magnifier",
+  "MagnificationChanger-Position": "1-1x",
+  "IL-Shutter-Description": "",
+  "IL-Shutter-Name": "",
+  "IL-Shutter-State": "0",
+  "TL-Shutter-Description": "",
+  "TL-Shutter-Name": "",
+  "TL-Shutter-State": "1",
+  "XYStage-Acceleration": "200",
+  "XYStage-Speed": "300000",
+  "XYStage-TransposeMirrorX": "0",
+  "XYStage-TransposeMirrorY": "0",
+  "Transmitted Light-Control": "Manual",
+  "Transmitted Light-Description": "",
+  "Transmitted Light-Level": "16",
+  "Transmitted Light-Name": "",
+  "Transmitted Light-State": "1",
+  "Core-AutoFocus": "",
+  "Core-AutoShutter": "0",
+  "Core-Camera": "BaumerOptronic",
+  "Core-ChannelGroup": "Imageing",
+  "Core-Focus": "FocusDrive",
+  "Core-Galvo": "",
+  "Core-ImageProcessor": "",
+  "Core-Initialize": "1",
+  "Core-SLM": "",
+  "Core-Shutter": "Transmitted Light",
+  "Core-TimeoutMs": "5000",
+  "Core-XYStage": "XYStage",
+  "ScopeDataKeys": [
+    "COM1-AnswerTimeout",
+    "COM1-BaudRate",
+    "COM1-DTR",
+    "COM1-DataBits",
+    "COM1-DelayBetweenCharsMs",
+    "COM1-Description",
+    "COM1-Fast USB to Serial",
+    "COM1-Handshaking",
+    "COM1-Name",
+    "COM1-Parity",
+    "COM1-StopBits",
+    "COM1-Verbose",
+    "BaumerOptronic-Binning",
+    "BaumerOptronic-BitDepth",
+    "BaumerOptronic-CameraID",
+    "BaumerOptronic-CameraName",
+    "BaumerOptronic-Description",
+    "BaumerOptronic-Exposure",
+    "BaumerOptronic-Gain",
+    "BaumerOptronic-Name",
+    "BaumerOptronic-PixelType",
+    "BaumerOptronic-TransposeCorrection",
+    "BaumerOptronic-TransposeMirrorX",
+    "BaumerOptronic-TransposeMirrorY",
+    "BaumerOptronic-TransposeXY",
+    "Scope-AnswerTimeOut",
+    "Scope-Description",
+    "Scope-Method",
+    "Scope-Microscope Firmware",
+    "Scope-Microscope Stand",
+    "Scope-Name",
+    "Scope-Port",
+    "IL-Turret-Description",
+    "IL-Turret-Label",
+    "IL-Turret-Name",
+    "IL-Turret-State",
+    "ObjectiveTurret-Article Number",
+    "ObjectiveTurret-Description",
+    "ObjectiveTurret-Immersion Medium",
+    "ObjectiveTurret-Label",
+    "ObjectiveTurret-Name",
+    "ObjectiveTurret-State",
+    "TL-FieldDiaphragm-Name",
+    "TL-FieldDiaphragm-Position",
+    "TL-ApertureDiaphragm-Name",
+    "TL-ApertureDiaphragm-Position",
+    "IL-FieldDiaphragm-Name",
+    "IL-FieldDiaphragm-Position",
+    "IL-ApertureDiaphragm-Name",
+    "IL-ApertureDiaphragm-Position",
+    "FocusDrive-Acceleration",
+    "FocusDrive-Speed",
+    "MagnificationChanger-Description",
+    "MagnificationChanger-Name",
+    "MagnificationChanger-Position",
+    "IL-Shutter-Description",
+    "IL-Shutter-Name",
+    "IL-Shutter-State",
+    "TL-Shutter-Description",
+    "TL-Shutter-Name",
+    "TL-Shutter-State",
+    "XYStage-Acceleration",
+    "XYStage-Speed",
+    "XYStage-TransposeMirrorX",
+    "XYStage-TransposeMirrorY",
+    "Transmitted Light-Control",
+    "Transmitted Light-Description",
+    "Transmitted Light-Level",
+    "Transmitted Light-Name",
+    "Transmitted Light-State",
+    "Core-AutoFocus",
+    "Core-AutoShutter",
+    "Core-Camera",
+    "Core-ChannelGroup",
+    "Core-Focus",
+    "Core-Galvo",
+    "Core-ImageProcessor",
+    "Core-Initialize",
+    "Core-SLM",
+    "Core-Shutter",
+    "Core-TimeoutMs",
+    "Core-XYStage"
+  ],
+  "UserData": {
+    "BaumerOptronic-Binning": {
+      "type": "STRING",
+      "scalar": "1"
+    },
+    "BaumerOptronic-BitDepth": {
+      "type": "STRING",
+      "scalar": "8"
+    },
+    "BaumerOptronic-CameraID": {
+      "type": "STRING",
+      "scalar": "V1.0"
+    },
+    "BaumerOptronic-CameraName": {
+      "type": "STRING",
+      "scalar": "BaumerOptronic-MultiMode"
+    },
+    "BaumerOptronic-Description": {
+      "type": "STRING",
+      "scalar": "Baumer Optronic Adapter for Leica Cameras"
+    },
+    "BaumerOptronic-Exposure": {
+      "type": "STRING",
+      "scalar": "100.0400"
+    },
+    "BaumerOptronic-Gain": {
+      "type": "STRING",
+      "scalar": "1.0000"
+    },
+    "BaumerOptronic-Name": {
+      "type": "STRING",
+      "scalar": "BaumerOptronic"
+    },
+    "BaumerOptronic-PixelType": {
+      "type": "STRING",
+      "scalar": "32bitRGB"
+    },
+    "BaumerOptronic-TransposeCorrection": {
+      "type": "STRING",
+      "scalar": "0"
+    },
+    "BaumerOptronic-TransposeMirrorX": {
+      "type": "STRING",
+      "scalar": "0"
+    },
+    "BaumerOptronic-TransposeMirrorY": {
+      "type": "STRING",
+      "scalar": "0"
+    },
+    "BaumerOptronic-TransposeXY": {
+      "type": "STRING",
+      "scalar": "0"
+    },
+    "COM1-AnswerTimeout": {
+      "type": "STRING",
+      "scalar": "5000.0000"
+    },
+    "COM1-BaudRate": {
+      "type": "STRING",
+      "scalar": "19200"
+    },
+    "COM1-DTR": {
+      "type": "STRING",
+      "scalar": "Disable"
+    },
+    "COM1-DataBits": {
+      "type": "STRING",
+      "scalar": "8"
+    },
+    "COM1-DelayBetweenCharsMs": {
+      "type": "STRING",
+      "scalar": "0.0000"
+    },
+    "COM1-Description": {
+      "type": "STRING",
+      "scalar": "Serial port driver (boost:asio)"
+    },
+    "COM1-Fast USB to Serial": {
+      "type": "STRING",
+      "scalar": "Disable"
+    },
+    "COM1-Handshaking": {
+      "type": "STRING",
+      "scalar": "Off"
+    },
+    "COM1-Name": {
+      "type": "STRING",
+      "scalar": "COM1"
+    },
+    "COM1-Parity": {
+      "type": "STRING",
+      "scalar": "None"
+    },
+    "COM1-StopBits": {
+      "type": "STRING",
+      "scalar": "1"
+    },
+    "COM1-Verbose": {
+      "type": "STRING",
+      "scalar": "1"
+    },
+    "Core-AutoFocus": {
+      "type": "STRING",
+      "scalar": ""
+    },
+    "Core-AutoShutter": {
+      "type": "STRING",
+      "scalar": "0"
+    },
+    "Core-Camera": {
+      "type": "STRING",
+      "scalar": "BaumerOptronic"
+    },
+    "Core-ChannelGroup": {
+      "type": "STRING",
+      "scalar": "Imageing"
+    },
+    "Core-Focus": {
+      "type": "STRING",
+      "scalar": "FocusDrive"
+    },
+    "Core-Galvo": {
+      "type": "STRING",
+      "scalar": ""
+    },
+    "Core-ImageProcessor": {
+      "type": "STRING",
+      "scalar": ""
+    },
+    "Core-Initialize": {
+      "type": "STRING",
+      "scalar": "1"
+    },
+    "Core-SLM": {
+      "type": "STRING",
+      "scalar": ""
+    },
+    "Core-Shutter": {
+      "type": "STRING",
+      "scalar": "Transmitted Light"
+    },
+    "Core-TimeoutMs": {
+      "type": "STRING",
+      "scalar": "5000"
+    },
+    "Core-XYStage": {
+      "type": "STRING",
+      "scalar": "XYStage"
+    },
+    "FocusDrive-Acceleration": {
+      "type": "STRING",
+      "scalar": "1"
+    },
+    "FocusDrive-Speed": {
+      "type": "STRING",
+      "scalar": "1"
+    },
+    "IL-ApertureDiaphragm-Name": {
+      "type": "STRING",
+      "scalar": "IL-ApertureDiaphragm"
+    },
+    "IL-ApertureDiaphragm-Position": {
+      "type": "STRING",
+      "scalar": "1"
+    },
+    "IL-FieldDiaphragm-Name": {
+      "type": "STRING",
+      "scalar": "IL-FieldDiaphragm"
+    },
+    "IL-FieldDiaphragm-Position": {
+      "type": "STRING",
+      "scalar": "1"
+    },
+    "IL-Shutter-Description": {
+      "type": "STRING",
+      "scalar": ""
+    },
+    "IL-Shutter-Name": {
+      "type": "STRING",
+      "scalar": ""
+    },
+    "IL-Shutter-State": {
+      "type": "STRING",
+      "scalar": "0"
+    },
+    "IL-Turret-Description": {
+      "type": "STRING",
+      "scalar": "Incident Light Reflector Turret"
+    },
+    "IL-Turret-Label": {
+      "type": "STRING",
+      "scalar": "2-N21"
+    },
+    "IL-Turret-Name": {
+      "type": "STRING",
+      "scalar": "Dichroics turret"
+    },
+    "IL-Turret-State": {
+      "type": "STRING",
+      "scalar": "1"
+    },
+    "MagnificationChanger-Description": {
+      "type": "STRING",
+      "scalar": "Motorized Magnifier"
+    },
+    "MagnificationChanger-Name": {
+      "type": "STRING",
+      "scalar": "Magnifier"
+    },
+    "MagnificationChanger-Position": {
+      "type": "STRING",
+      "scalar": "1-1x"
+    },
+    "ObjectiveTurret-Article Number": {
+      "type": "STRING",
+      "scalar": "250"
+    },
+    "ObjectiveTurret-Description": {
+      "type": "STRING",
+      "scalar": "Objective Turret"
+    },
+    "ObjectiveTurret-Immersion Medium": {
+      "type": "STRING",
+      "scalar": "Dry"
+    },
+    "ObjectiveTurret-Label": {
+      "type": "STRING",
+      "scalar": "3-2x 0.07na"
+    },
+    "ObjectiveTurret-Name": {
+      "type": "STRING",
+      "scalar": "Objective turret"
+    },
+    "ObjectiveTurret-State": {
+      "type": "STRING",
+      "scalar": "2"
+    },
+    "Scope-AnswerTimeOut": {
+      "type": "STRING",
+      "scalar": "250.0000"
+    },
+    "Scope-Description": {
+      "type": "STRING",
+      "scalar": "Leica microscope CAN bus adapter"
+    },
+    "Scope-Method": {
+      "type": "STRING",
+      "scalar": "TL BF"
+    },
+    "Scope-Microscope Firmware": {
+      "type": "STRING",
+      "scalar": "SYS.HEX V01.36.3451"
+    },
+    "Scope-Microscope Stand": {
+      "type": "STRING",
+      "scalar": "DM6000B-CS"
+    },
+    "Scope-Name": {
+      "type": "STRING",
+      "scalar": "Scope"
+    },
+    "Scope-Port": {
+      "type": "STRING",
+      "scalar": "COM1"
+    },
+    "TL-ApertureDiaphragm-Name": {
+      "type": "STRING",
+      "scalar": "TL-ApertureDiaphragm"
+    },
+    "TL-ApertureDiaphragm-Position": {
+      "type": "STRING",
+      "scalar": "9"
+    },
+    "TL-FieldDiaphragm-Name": {
+      "type": "STRING",
+      "scalar": "TL-FieldDiaphragm"
+    },
+    "TL-FieldDiaphragm-Position": {
+      "type": "STRING",
+      "scalar": "14"
+    },
+    "TL-Shutter-Description": {
+      "type": "STRING",
+      "scalar": ""
+    },
+    "TL-Shutter-Name": {
+      "type": "STRING",
+      "scalar": ""
+    },
+    "TL-Shutter-State": {
+      "type": "STRING",
+      "scalar": "1"
+    },
+    "Transmitted Light-Control": {
+      "type": "STRING",
+      "scalar": "Manual"
+    },
+    "Transmitted Light-Description": {
+      "type": "STRING",
+      "scalar": ""
+    },
+    "Transmitted Light-Level": {
+      "type": "STRING",
+      "scalar": "16"
+    },
+    "Transmitted Light-Name": {
+      "type": "STRING",
+      "scalar": ""
+    },
+    "Transmitted Light-State": {
+      "type": "STRING",
+      "scalar": "1"
+    },
+    "XYStage-Acceleration": {
+      "type": "STRING",
+      "scalar": "200"
+    },
+    "XYStage-Speed": {
+      "type": "STRING",
+      "scalar": "300000"
+    },
+    "XYStage-TransposeMirrorX": {
+      "type": "STRING",
+      "scalar": "0"
+    },
+    "XYStage-TransposeMirrorY": {
+      "type": "STRING",
+      "scalar": "0"
+    }
+  },
+  "FileName": "test img_MMStack_Default.ome.tif"
+}
+}
