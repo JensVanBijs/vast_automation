@@ -41,6 +41,8 @@ class MicroscopeManager:
         self._objectives = objectives.getPropertyObject("State")
 
         self.core.setProperty("BaumerOptronic", "PixelType", "32bitRGB")
+        self.core.setAutoShutter(False)
+        self.core.setShutterOpen(True)
         plt.axis('off')
 
         self.image = np.array([])

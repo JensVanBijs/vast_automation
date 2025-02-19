@@ -42,6 +42,7 @@ core.enableDebugLog(True)
 core.setDeviceAdapterSearchPaths([r"C:\Program Files\Micro-Manager-2.0"])
 micromanager_directory = r"C:\Program Files\Micro-Manager-2.0"
 os.add_dll_directory(micromanager_directory)
+core.loadSystemConfiguration(os.path.join(micromanager_directory, "CTR6000-test.cfg"))
 
 # Load devices -------------------------
 
@@ -79,13 +80,8 @@ core.initializeAllDevices()
 core.setCameraDevice("BaumerOptronic")
 # equivalent of config: Property,Core,AutoShutter,1
 core.setShutterOpen(True)  # <--------
-
-# turn on light
-tl = pymmcore_plus.Device("Transmitted Light", core)
-_light = tl.getPropertyObject("State")
-_brightness = tl.getPropertyObject("Level")
-_light = 1
-_brightness = 40
+config = pymmcore_plus.ConfigGroup('Imageing', core)
+config.setConfig('BF')
 
 img = core.snap()
 # Sidenote: I would have expected snap() to reshape/fix the image for you... no?

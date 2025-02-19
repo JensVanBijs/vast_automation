@@ -73,7 +73,6 @@ def get_leica_images(motor, led, zoom: list, fluorescence: list, microscope: Mic
             microscope.wait()
             microscope.switch_objective(z)
             microscope.wait()
-            microscope.light = 1
             snap_images(motor, microscope, dir)
 
 def snap_images(motor: Motor, microscope: MicroscopeManager, dir: str):
@@ -100,7 +99,7 @@ if __name__ == "__main__":
     microscope = MicroscopeManager()
     now = datetime.datetime.now()
     date_time = now.strftime("%Y-%m-%d %H-%M-%S")
-    get_control_images(motor, ledcnt, date_time)
+    # get_control_images(motor, ledcnt, date_time)
     get_leica_images(motor=motor, 
                      led=ledcnt, 
                      zoom=['2.5x'], 
