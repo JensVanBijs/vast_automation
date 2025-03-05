@@ -4,16 +4,31 @@ class VAST360CaptureApp(ctk.CTk):
     def __init__(self):
         super().__init__()
 
+        self.pos_var = ctk.IntVar(value=1)   # Define pos_var
+        self.rot_var = ctk.IntVar(value=10)
+
         # Configure window
         self.title("Automatic VAST 360 Capture")
-        self.geometry("600x400")
-        
+        self.geometry("900x600")
+
         # Tabs 
         tab_view = ctk.CTkTabview(self)
         tab_view.pack(fill="both", expand=True, padx=10, pady=10)
 
-        # Left side - Capture and Magnification sections
-        left_frame = ctk.CTkFrame(main_frame, fg_color="gray30")
+        # Create tabs 
+        capture_tab = tab_view.add("Capture")
+        motor_tab = tab_view.add("Motor")
+
+        # Capture tab 
+        self.create_capture_tab(capture_tab)
+
+        # Motor tab
+        self.create_motor_tab(motor_tab)
+
+    def create_capture_tab(self, frame):
+        """ Create the Capture tab UI """
+        # Left section: Fluorescence & Magnification
+        left_frame = ctk.CTkFrame(frame, fg_color="gray30")
         left_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
         # Fluorescence section
@@ -24,9 +39,12 @@ class VAST360CaptureApp(ctk.CTk):
         self.fluorescence_vars = {}
         for option in fluorescence_options:
             var = ctk.StringVar(value="on")
-            checkbox = ctk.CTkCheckBox(left_frame, text=option, variable=var, 
-                                       onvalue="on", offvalue="off")
+            checkbox = ctk.CTkCheckBox(left_frame, text=option, variable=var, onvalue="on", offvalue="off")
             checkbox.pack(anchor="w", padx=10)
+
+            spacer = ctk.CTkFrame(left_frame, height=10, fg_color='transparent') 
+            spacer.pack()
+
             self.fluorescence_vars[option] = var
 
         # Magnification section
@@ -37,16 +55,17 @@ class VAST360CaptureApp(ctk.CTk):
         self.magnification_vars = {}
         for option in magnification_options:
             var = ctk.StringVar(value="on")
-            checkbox = ctk.CTkCheckBox(left_frame, text=option, variable=var, 
-                                       onvalue="on", offvalue="off")
+            checkbox = ctk.CTkCheckBox(left_frame, text=option, variable=var, onvalue="on", offvalue="off")
             checkbox.pack(anchor="w", padx=10)
+            spacer = ctk.CTkFrame(left_frame, height=10, fg_color='transparent')  # Adjust height for spacing
+            spacer.pack()
             self.magnification_vars[option] = var
 
-        # Right side - Stream/Test Capture and Buttons
-        right_frame = ctk.CTkFrame(main_frame, fg_color="gray30")
+        # Right section: Stream/Test Capture
+        right_frame = ctk.CTkFrame(frame, fg_color="gray30")
         right_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
 
-        # Stream/Test Capture display
+        # Display area
         capture_display = ctk.CTkFrame(right_frame, height=300, width=400, fg_color="black")
         capture_display.pack(padx=10, pady=10, expand=True, fill="both")
 
@@ -66,14 +85,73 @@ class VAST360CaptureApp(ctk.CTk):
         run_btn = ctk.CTkButton(button_frame, text="Run", fg_color="gray", hover_color="darkgray")
         run_btn.pack(side="left", padx=5, expand=True, fill="x")
 
-        # Configure grid weights
-        main_frame.grid_columnconfigure(0, weight=1)
-        main_frame.grid_columnconfigure(1, weight=3)
-        main_frame.grid_rowconfigure(0, weight=1)
+        # Grid configuration
+        frame.grid_columnconfigure(0, weight=1)
+        frame.grid_columnconfigure(1, weight=3)
+        frame.grid_rowconfigure(0, weight=1)
+
+    def create_motor_tab(self, frame):
+        """ Create the Motor tab UI """
+        # Left section: Motor controls
+        motor_frame = ctk.CTkFrame(frame, fg_color="gray30")
+        motor_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+
+        # Positional Motor Controls
+        pos_label = ctk.CTkLabel(motor_frame, text="Positional motor", font=("Arial", 14, "bold"))
+        pos_label.pack(pady=(10, 5), anchor="center")
+
+        pos_control = ctk.CTkEntry(motor_frame, textvariable=self.pos_var, width=50)
+        pos_control.pack(pady=5)
+
+        # Create a frame for positional motor buttons
+        pos_button_frame = ctk.CTkFrame(motor_frame, fg_color="transparent")
+        pos_button_frame.pack(pady=5)
+
+        pos_btn_left = ctk.CTkButton(pos_button_frame, text="←", width=40)
+        pos_btn_left.pack(side="left", padx=5)
+
+        pos_btn_right = ctk.CTkButton(pos_button_frame, text="→", width=40)
+        pos_btn_right.pack(side="left", padx=5)
+
+        # Rotational Motor Controls
+        rot_label = ctk.CTkLabel(motor_frame, text="Rotational motor", font=("Arial", 14, "bold"))
+        rot_label.pack(pady=(10, 5), anchor="center")
+
+        rot_control = ctk.CTkEntry(motor_frame, textvariable=self.rot_var, width=50)
+        rot_control.pack(pady=5)
+
+        # Create a frame for rotational motor buttons
+        rot_button_frame = ctk.CTkFrame(motor_frame, fg_color="transparent")
+        rot_button_frame.pack(pady=5)
+
+        rot_btn_left = ctk.CTkButton(rot_button_frame, text="⟲", width=40)
+        rot_btn_left.pack(side="left", padx=5)
+
+        rot_btn_right = ctk.CTkButton(rot_button_frame, text="⟳", width=40)
+        rot_btn_right.pack(side="left", padx=5)
+
+
+        # Right section: Streaming
+        right_frame = ctk.CTkFrame(frame, fg_color="gray30")
+        right_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+
+        stream_display = ctk.CTkFrame(right_frame, height=300, width=400, fg_color="black")
+        stream_display.pack(padx=10, pady=10, expand=True, fill="both")
+
+        stream_label = ctk.CTkLabel(stream_display, text="Stream", text_color="white")
+        stream_label.place(relx=0.5, rely=0.5, anchor="center")
+
+        stream_btn = ctk.CTkButton(right_frame, text="Stream", fg_color="green", hover_color="darkgreen")
+        stream_btn.pack(pady=10)
+
+        # Grid configuration
+        frame.grid_columnconfigure(0, weight=1)
+        frame.grid_columnconfigure(1, weight=3)
+        frame.grid_rowconfigure(0, weight=1)
 
 if __name__ == "__main__":
     ctk.set_appearance_mode("dark")
     ctk.set_default_color_theme("blue")
-    
+
     app = VAST360CaptureApp()
     app.mainloop()
