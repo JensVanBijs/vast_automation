@@ -8,9 +8,9 @@ class VAST360CaptureApp(ctk.CTk):
         self.title("Automatic VAST 360 Capture")
         self.geometry("600x400")
         
-        # Main frame
-        main_frame = ctk.CTkFrame(self, fg_color="gray20")
-        main_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        # Tabs 
+        tab_view = ctk.CTkTabview(self)
+        tab_view.pack(fill="both", expand=True, padx=10, pady=10)
 
         # Left side - Capture and Magnification sections
         left_frame = ctk.CTkFrame(main_frame, fg_color="gray30")
