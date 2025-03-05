@@ -1,3 +1,4 @@
+import time
 from .Usb2Comm import Usb2Comm
 import System
 
@@ -56,3 +57,29 @@ class Motor():
         data = (self.usbComm.ReadbackSPI_Word(System.UInt16(0)) & 1)
         cmd = f"aM{self._motorInd}V200P0" if (int(data) & 1) <= 0 else f"aM{self._motorInd}V200D0"
         self.SendCmd(cmd)
+
+    def SelectMotor(self):
+        cmd_string = f"aM{self._motorInd}"
+        if self.usbComm == None:
+            return
+        
+        self.usbComm.SendAllMotionBuffer(cmd_string, System.Byte(49))
+        time.sleep(0.5)
+
+    def move_z_motor(self, dist: int, direction: str):
+        if self._motorInd != 2:
+            Exception()
+            return
+
+        if direction.lower() == "left":
+            cmd = f"aM2P{dist}"
+            self.SendCmd(cmd)
+        
+        if direction.lower() == "right":
+            cmd = f"aM2D{dist}"
+            self.SendCmd(cmd)
+        
+
+
+
+    
