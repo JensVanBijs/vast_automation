@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from .main import AutoImager
+from main import AutoImager
 
 class VAST360CaptureApp(ctk.CTk):
     def __init__(self):
