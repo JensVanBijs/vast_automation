@@ -1,8 +1,13 @@
 import customtkinter as ctk
+from .main import AutoImager
 
 class VAST360CaptureApp(ctk.CTk):
     def __init__(self):
         super().__init__()
+
+        self.auto_imager = AutoImager()
+        self.running = False
+        self.streaming = False
 
         self.pos_var = ctk.IntVar(value=1)   # Define pos_var
         self.rot_var = ctk.IntVar(value=10)
@@ -35,7 +40,7 @@ class VAST360CaptureApp(ctk.CTk):
         fluorescence_label = ctk.CTkLabel(left_frame, text="Fluorescence", font=("Arial", 14, "bold"))
         fluorescence_label.pack(pady=(10, 5), anchor="w")
 
-        fluorescence_options = ["Brightfield", "Green", "Blue"]
+        fluorescence_options = ["White", "Green", "Blue"]
         self.fluorescence_vars = {}
         for option in fluorescence_options:
             var = ctk.StringVar(value="on")
@@ -76,14 +81,14 @@ class VAST360CaptureApp(ctk.CTk):
         button_frame = ctk.CTkFrame(right_frame, fg_color="transparent")
         button_frame.pack(fill="x", padx=10, pady=10)
 
-        test_capture_btn = ctk.CTkButton(button_frame, text="Test capture", fg_color="blue", hover_color="darkblue")
-        test_capture_btn.pack(side="left", padx=5, expand=True, fill="x")
+        self.test_capture_btn = ctk.CTkButton(button_frame, text="Test capture", fg_color="blue", hover_color="darkblue")
+        self.test_capture_btn.pack(side="left", padx=5, expand=True, fill="x")
 
-        stream_btn = ctk.CTkButton(button_frame, text="Stream", fg_color="green", hover_color="darkgreen")
-        stream_btn.pack(side="left", padx=5, expand=True, fill="x")
+        self.stream_btn = ctk.CTkButton(button_frame, text="Stream", fg_color="green", hover_color="darkgreen")
+        self.stream_btn.pack(side="left", padx=5, expand=True, fill="x")
 
-        run_btn = ctk.CTkButton(button_frame, text="Run", fg_color="gray", hover_color="darkgray")
-        run_btn.pack(side="left", padx=5, expand=True, fill="x")
+        self.run_btn = ctk.CTkButton(button_frame, text="Run", fg_color="gray", hover_color="darkgray")
+        self.run_btn.pack(side="left", padx=5, expand=True, fill="x")
 
         # Grid configuration
         frame.grid_columnconfigure(0, weight=1)
@@ -107,11 +112,11 @@ class VAST360CaptureApp(ctk.CTk):
         pos_button_frame = ctk.CTkFrame(motor_frame, fg_color="transparent")
         pos_button_frame.pack(pady=5)
 
-        pos_btn_left = ctk.CTkButton(pos_button_frame, text="←", width=40)
-        pos_btn_left.pack(side="left", padx=5)
+        self.pos_btn_left = ctk.CTkButton(pos_button_frame, text="←", width=40)
+        self.pos_btn_left.pack(side="left", padx=5)
 
-        pos_btn_right = ctk.CTkButton(pos_button_frame, text="→", width=40)
-        pos_btn_right.pack(side="left", padx=5)
+        self.pos_btn_right = ctk.CTkButton(pos_button_frame, text="→", width=40)
+        self.pos_btn_right.pack(side="left", padx=5)
 
         # Rotational Motor Controls
         rot_label = ctk.CTkLabel(motor_frame, text="Rotational motor", font=("Arial", 14, "bold"))
@@ -124,11 +129,11 @@ class VAST360CaptureApp(ctk.CTk):
         rot_button_frame = ctk.CTkFrame(motor_frame, fg_color="transparent")
         rot_button_frame.pack(pady=5)
 
-        rot_btn_left = ctk.CTkButton(rot_button_frame, text="⟲", width=40)
-        rot_btn_left.pack(side="left", padx=5)
+        self.rot_btn_left = ctk.CTkButton(rot_button_frame, text="⟲", width=40)
+        self.rot_btn_left.pack(side="left", padx=5)
 
-        rot_btn_right = ctk.CTkButton(rot_button_frame, text="⟳", width=40)
-        rot_btn_right.pack(side="left", padx=5)
+        self.rot_btn_right = ctk.CTkButton(rot_button_frame, text="⟳", width=40)
+        self.rot_btn_right.pack(side="left", padx=5)
 
 
         # Right section: Streaming
@@ -141,13 +146,41 @@ class VAST360CaptureApp(ctk.CTk):
         stream_label = ctk.CTkLabel(stream_display, text="Stream", text_color="white")
         stream_label.place(relx=0.5, rely=0.5, anchor="center")
 
-        stream_btn = ctk.CTkButton(right_frame, text="Stream", fg_color="green", hover_color="darkgreen")
-        stream_btn.pack(pady=10)
+        self.stream_btn = ctk.CTkButton(right_frame, text="Stream", fg_color="green", hover_color="darkgreen")
+        self.stream_btn.pack(pady=10)
 
         # Grid configuration
         frame.grid_columnconfigure(0, weight=1)
         frame.grid_columnconfigure(1, weight=3)
         frame.grid_rowconfigure(0, weight=1)
+    
+    def on_test_capture(self):
+        pass
+
+    def toggle_stream(self):
+        pass
+
+    def on_run(self):
+        pass
+
+    def disable_buttons(self):
+        if not self.running:
+            return
+        
+        if self.streaming:
+             # If streaming, only keep stream button enabled
+            self.test_capture_btn.configure(state="disabled")
+            self.run_btn.configure(state="disabled")
+        else:
+            # If not streaming, disable all buttons except the current active one
+            self.test_capture_btn.configure(state="disabled")
+            self.stream_btn.configure(state="disabled")
+            self.run_btn.configure(state="disabled")
+
+    def enable_buttons(self):
+        self.test_capture_btn.configure(state="normal")
+        self.stream_btn.configure(state="normal")
+        self.run_btn.configure(state="normal")
 
 if __name__ == "__main__":
     ctk.set_appearance_mode("dark")
