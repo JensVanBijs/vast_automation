@@ -78,7 +78,7 @@ class CameraControl():
             img = None
             with cameras[0] as camera:
                 self.setup_camera(camera, height, width)
-                img = camera.get_frame()
+                img = camera.get_frame().as_numpy_ndarray()
 
             return img
 

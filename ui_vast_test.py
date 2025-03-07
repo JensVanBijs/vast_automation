@@ -1,13 +1,16 @@
 import time
 import customtkinter as ctk
-from main import AutoImager
-from controllers.vast_camera_control import CameraControl
+# from main import AutoImager
+from PIL import Image, ImageTk
+from PIL.Image import Resampling
+import numpy as np
+# from controllers.vast_camera_control import CameraControl
 
 class VAST360CaptureApp(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self.auto_imager = AutoImager()
+        # self.auto_imager = AutoImager()
         self.running = False
         self.streaming = False
 
@@ -19,28 +22,28 @@ class VAST360CaptureApp(ctk.CTk):
         self.geometry("900x600")
 
         # Tabs 
-        tab_view = ctk.CTkTabview(self)
-        tab_view.pack(fill="both", expand=True, padx=10, pady=10)
+        self.tab_view = ctk.CTkTabview(self, corner_radius=10)
+        self.tab_view.pack(fill="both", expand=True, padx=10, pady=10)
 
         # Create tabs 
-        capture_tab = tab_view.add("Capture")
-        motor_tab = tab_view.add("Motor")
+        self.capture_tab = self.tab_view.add("Capture")
+        self.motor_tab = self.tab_view.add("Motor")
 
         # Capture tab 
-        self.create_capture_tab(capture_tab)
+        self.create_capture_tab()
 
         # Motor tab
-        self.create_motor_tab(motor_tab)
+        self.create_motor_tab()
 
-    def create_capture_tab(self, frame):
+    def create_capture_tab(self):
         """ Create the Capture tab UI """
         # Left section: Fluorescence & Magnification
-        left_frame = ctk.CTkFrame(frame, fg_color="gray30")
+        left_frame = ctk.CTkFrame(self.capture_tab, fg_color="#7C7C7C", corner_radius=10)
         left_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
         # Fluorescence section
         fluorescence_label = ctk.CTkLabel(left_frame, text="Fluorescence", font=("Arial", 14, "bold"))
-        fluorescence_label.pack(pady=(10, 5), anchor="w")
+        fluorescence_label.pack(padx=10, pady=(10, 5), anchor="w")
 
         fluorescence_options = ["White", "Green", "Blue"]
         self.fluorescence_vars = {}
@@ -56,7 +59,7 @@ class VAST360CaptureApp(ctk.CTk):
 
         # Magnification section
         magnification_label = ctk.CTkLabel(left_frame, text="Magnification", font=("Arial", 14, "bold"))
-        magnification_label.pack(pady=(10, 5), anchor="w")
+        magnification_label.pack(padx=10, pady=(10, 5), anchor="w")
 
         magnification_options = ["2.5x", "4x", "10x"]
         self.magnification_vars = {}
@@ -69,7 +72,7 @@ class VAST360CaptureApp(ctk.CTk):
             self.magnification_vars[option] = var
 
         # Right section: Stream/Test Capture
-        right_frame = ctk.CTkFrame(frame, fg_color="gray30")
+        right_frame = ctk.CTkFrame(self.capture_tab, fg_color="#7C7C7C", corner_radius=10)
         right_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
 
         # Display area
@@ -83,24 +86,33 @@ class VAST360CaptureApp(ctk.CTk):
         button_frame = ctk.CTkFrame(right_frame, fg_color="transparent")
         button_frame.pack(fill="x", padx=10, pady=10)
 
-        self.test_capture_btn = ctk.CTkButton(button_frame, text="Test capture", fg_color="blue", hover_color="darkblue")
+        self.test_capture_btn = ctk.CTkButton(button_frame,
+                                              text="Test capture", 
+                                              fg_color="blue", 
+                                              hover_color="darkblue", 
+                                              command=self.on_test_capture)
         self.test_capture_btn.pack(side="left", padx=5, expand=True, fill="x")
 
-        self.stream_btn = ctk.CTkButton(button_frame, text="Stream", fg_color="green", hover_color="darkgreen")
+        self.stream_btn = ctk.CTkButton(button_frame, 
+                                        text="Stream", 
+                                        fg_color="green", 
+                                        hover_color="darkgreen", 
+                                        command=self.toggle_stream)
         self.stream_btn.pack(side="left", padx=5, expand=True, fill="x")
 
-        self.run_btn = ctk.CTkButton(button_frame, text="Run", fg_color="gray", hover_color="darkgray")
+
+        self.run_btn = ctk.CTkButton(button_frame, text="Run", fg_color="green", hover_color="darkgreen")
         self.run_btn.pack(side="left", padx=5, expand=True, fill="x")
 
         # Grid configuration
-        frame.grid_columnconfigure(0, weight=1)
-        frame.grid_columnconfigure(1, weight=3)
-        frame.grid_rowconfigure(0, weight=1)
+        self.capture_tab.grid_columnconfigure(0, weight=1)
+        self.capture_tab.grid_columnconfigure(1, weight=3)
+        self.capture_tab.grid_rowconfigure(0, weight=1)
 
-    def create_motor_tab(self, frame):
+    def create_motor_tab(self):
         """ Create the Motor tab UI """
         # Left section: Motor controls
-        motor_frame = ctk.CTkFrame(frame, fg_color="gray30")
+        motor_frame = ctk.CTkFrame(self.motor_tab, fg_color="gray30")
         motor_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
         # Positional Motor Controls
@@ -139,7 +151,7 @@ class VAST360CaptureApp(ctk.CTk):
 
 
         # Right section: Streaming
-        right_frame = ctk.CTkFrame(frame, fg_color="gray30")
+        right_frame = ctk.CTkFrame(self.motor_tab, fg_color="gray30")
         right_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
 
         stream_display = ctk.CTkFrame(right_frame, height=300, width=400, fg_color="black")
@@ -152,21 +164,29 @@ class VAST360CaptureApp(ctk.CTk):
         self.stream_btn.pack(pady=10)
 
         # Grid configuration
-        frame.grid_columnconfigure(0, weight=1)
-        frame.grid_columnconfigure(1, weight=3)
-        frame.grid_rowconfigure(0, weight=1)
+        self.motor_tab.grid_columnconfigure(0, weight=1)
+        self.motor_tab.grid_columnconfigure(1, weight=3)
+        self.motor_tab.grid_rowconfigure(0, weight=1)
     
     def on_test_capture(self):
-        self.running = True
-        self.disable_buttons()
+        # self.running = True
+        # self.disable_buttons()
         # camera_control = CameraControl()
+        # display_height = self.capture_tab.children[1].children[0].winfo_height()
+        # display_width = self.capture_tab.children[1].children[0].winfo_width()
+        # image = camera_control.capture_image(self.auto_imager.usb, display_height, display_width)
+        # self.display_image(image)
+        # self.running = False
+        # self.enable_buttons()
 
-        display_width = self.capture_display.winfo_width() or 400
-        display_height = self.capture_display.winfo_height() or 300
-        time.sleep(10)
-        self.running = False
-        self.enable_buttons()
+        # Load image from downloads
+        image_path = "/Users/coenwerre/Downloads/Domme foto.JPG"
+        image = Image.open(image_path)
 
+        # Convert image to numpy array
+        image_array = np.array(image)
+        self.display_image(image_array)
+        
     def toggle_stream(self):
         pass
 
@@ -179,18 +199,37 @@ class VAST360CaptureApp(ctk.CTk):
         
         if self.streaming:
              # If streaming, only keep stream button enabled
-            self.test_capture_btn.configure(state="disabled")
-            self.run_btn.configure(state="disabled")
+            self.test_capture_btn.configure(require_redraw=True, state="disabled", fg_color='gray', hover_color='gray')
+            self.run_btn.configure(require_redraw=True, state="disabled", fg_color='gray', hover_color='gray')
         else:
             # If not streaming, disable all buttons except the current active one
-            self.test_capture_btn.configure(state="disabled")
-            self.stream_btn.configure(state="disabled")
-            self.run_btn.configure(state="disabled")
+            self.test_capture_btn.configure(require_redraw=True, state="disabled")
+            self.stream_btn.configure(require_redraw=True, state="disabled")
+            self.run_btn.configure(require_redraw=True, state="disabled")
 
     def enable_buttons(self):
-        self.test_capture_btn.configure(state="normal")
-        self.stream_btn.configure(state="normal")
-        self.run_btn.configure(state="normal")
+        self.test_capture_btn.configure(require_redraw=True, state="normal", fg_color='blue')
+        self.stream_btn.configure(require_redraw=True, state="normal")
+        self.run_btn.configure(require_redraw=True, state="normal", fg_color='green')
+    
+    def display_image(self, image):
+        capture_display = self.capture_tab.children['!ctkframe2'].children['!ctkframe']
+        pil_image = Image.fromarray(image)
+        
+        # Get current display size
+        display_width = capture_display.winfo_width() or 400
+        display_height = capture_display.winfo_height() or 300
+        
+        # Resize image
+        pil_image.thumbnail((display_width, display_height), Resampling.LANCZOS)
+        
+        # Convert to PhotoImage
+        photo = ctk.CTkImage(dark_image=pil_image, size=(display_width, display_height))
+        label = ctk.CTkLabel(capture_display, image=photo, text='')
+        label.place(relx=0.5, rely=0.5, anchor="center")
+        
+        # # Update the label
+        # capture_display.configure(label=label)
 
 if __name__ == "__main__":
     ctk.set_appearance_mode("dark")
