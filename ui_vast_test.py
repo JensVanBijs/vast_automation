@@ -1,5 +1,7 @@
+import time
 import customtkinter as ctk
 from main import AutoImager
+from controllers.vast_camera_control import CameraControl
 
 class VAST360CaptureApp(ctk.CTk):
     def __init__(self):
@@ -155,7 +157,15 @@ class VAST360CaptureApp(ctk.CTk):
         frame.grid_rowconfigure(0, weight=1)
     
     def on_test_capture(self):
-        pass
+        self.running = True
+        self.disable_buttons()
+        # camera_control = CameraControl()
+
+        display_width = self.capture_display.winfo_width() or 400
+        display_height = self.capture_display.winfo_height() or 300
+        time.sleep(10)
+        self.running = False
+        self.enable_buttons()
 
     def toggle_stream(self):
         pass

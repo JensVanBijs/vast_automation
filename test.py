@@ -2,7 +2,7 @@ from controllers.Usb2Comm import Usb2Comm
 from controllers.LED_Control import LedCtrl, LedSettings
 from controllers.Motor_Control import Motor
 from controllers.LEICA_control import MicroscopeManager
-from camera_stream import setup_camera, Handler, turn_on_led
+from controllers.vast_camera_control import setup_camera, Handler, turn_on_led
 from enum import Enum
 import time
 import threading

@@ -2,12 +2,10 @@ from controllers.Usb2Comm import Usb2Comm
 from controllers.led_control import LedCtrl, LedSettings
 from controllers.motor_control import Motor
 from controllers.leica_control import MicroscopeManager
-from camera_stream import setup_camera, Handler, turn_on_led
+from controllers.vast_camera_control import CameraControl, Handler
 from enum import Enum
 import time
-import threading
 import os
-import datetime
 from vimba import Vimba, Camera, VimbaFeatureError, Frame, FrameStatus, PixelFormat
 import cv2
 from PIL import Image
@@ -110,10 +108,11 @@ class AutoImager():
         7. Cleans up by destroying the image directory if empty, closing all OpenCV windows, and turning off the LED.
         """
         camera: Camera
+        cam_ctrl = CameraControl()
         with Vimba.get_instance() as vimba:
             cameras = vimba.get_all_cameras()
             with cameras[0] as camera:
-                setup_camera(camera)
+                cam_ctrl.setup_camera(camera)
                 try: 
                     camera.get_feature_by_name('Height').set(250)   
                     camera.get_feature_by_name('Width').set(1024)
@@ -154,3 +153,7 @@ class AutoImager():
             dir_string += f'/{zoom}/{fluorescence}'
         os.makedirs(dir_string)
         return dir_string
+    
+if __name__ == "__main__":
+    imager = AutoImager()
+    imager.get_leica_images()
