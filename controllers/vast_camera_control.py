@@ -1,6 +1,7 @@
+import numpy as np
 from controllers.led_control import LedCtrl, LedSettings
 from controllers.Usb2Comm import Usb2Comm
-from vimba import Vimba, Camera, Frame, FrameStatus, intersect_pixel_formats, OPENCV_PIXEL_FORMATS, VimbaFeatureError
+from vimba import Vimba, Camera, Frame, FrameStatus, intersect_pixel_formats, BAYER_PIXEL_FORMATS, VimbaFeatureError, PixelFormat
 import cv2
 import threading
 
@@ -38,8 +39,9 @@ class CameraControl():
                 pass
 
             fmts = camera.get_pixel_formats()
-            fmts = intersect_pixel_formats(fmts, OPENCV_PIXEL_FORMATS)
+            fmts = intersect_pixel_formats(fmts, BAYER_PIXEL_FORMATS)
             if fmts:
+                print(fmts)
                 camera.set_pixel_format(fmts[0])
             else:
                 raise Exception("No matching pixel format available")
@@ -65,22 +67,27 @@ class CameraControl():
                     camera.stop_streaming()
                     ledctrl.LedOnOff(1, False, 1)
 
-    cv2.destroyAllWindows()
+        cv2.destroyAllWindows()
 
-    def capture_image(self, usb: Usb2Comm, height: int, width: int):
-        led_control = self.turn_on_led(usb, 0.5)
+    def capture_image(self, usb: Usb2Comm, height: int = 720, width: int = 1280):
+        led_control = self.turn_on_led(usb, 0.25)
         with Vimba.get_instance() as vimba:
             cameras = vimba.get_all_cameras()
             if not cameras:
                 raise Exception("No cameras available")
             
             camera: Camera
-            img = None
+            img: Frame
             with cameras[0] as camera:
-                self.setup_camera(camera, height, width)
-                img = camera.get_frame().as_numpy_ndarray()
+                self.setup_camera(camera)
+                img = camera.get_frame()
+                img.convert_pixel_format(PixelFormat.Bgr8)
+                img = img.as_numpy_ndarray()
+                led_control.LedOnOff(1, False, 1)
 
-            return img
+            assert isinstance(img, np.ndarray), "Captured image is not a numpy array"
+
+        return img[...,::-1].copy()
 
 class Handler:
     def __init__(self):
@@ -102,4 +109,8 @@ class Handler:
 
 
 if __name__ == "__main__":
-    pass
+    ctr = CameraControl()
+    usb = Usb2Comm().usb
+    img = ctr.capture_image(usb)
+    print(img)
+    print(img.shape)

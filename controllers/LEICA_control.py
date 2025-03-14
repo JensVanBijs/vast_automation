@@ -123,6 +123,7 @@ class MicroscopeManager:
     
     def snap_picture(self):
         img = self.core.snap()
+        self.wait()
         img = img.view(dtype=np.uint8).reshape(img.shape[0], img.shape[1], 4)[...,2::-1]
         img = img[:,:,::-1]
         self.image = img
@@ -155,8 +156,9 @@ class MicroscopeManager:
         filter = filters[name]
 
         self.lens = filter["filter_location"]
+        self.core.setExposure(filter["exposure"])
+        self.wait()
         if filter["fluorescence"] == 0:
-            self.wait()
             self.light = 1
 
     def full_imaging(self, label, height, filters):

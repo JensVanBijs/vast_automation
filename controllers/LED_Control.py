@@ -35,7 +35,7 @@ class LedCtrl():
         self._usbComm.WriteSPI_Word(System.Byte(0), System.Byte(2), self._dacGainCfg)
         self._usbComm.WriteSPI_Word(System.Byte(0), System.Byte(2), self._dacLdacCfg)
         self._usbComm.WriteSPI_Word(System.Byte(0), System.Byte(2), self._dacChanEn)
-        self.SetLed(49406, ledSettings, True)
+        self.SetLed(49406, ledSettings, False)
 
     def SetLed(self, state: int, ledSettings: LedSettings, setCurr: bool):
         self._ledState = state

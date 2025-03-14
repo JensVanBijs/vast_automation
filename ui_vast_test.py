@@ -1,16 +1,16 @@
 import time
 import customtkinter as ctk
-# from main import AutoImager
+from main import AutoImager
 from PIL import Image, ImageTk
 from PIL.Image import Resampling
 import numpy as np
-# from controllers.vast_camera_control import CameraControl
+from controllers.vast_camera_control import CameraControl
 
 class VAST360CaptureApp(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        # self.auto_imager = AutoImager()
+        self.auto_imager = AutoImager()
         self.running = False
         self.streaming = False
 
@@ -169,23 +169,16 @@ class VAST360CaptureApp(ctk.CTk):
         self.motor_tab.grid_rowconfigure(0, weight=1)
     
     def on_test_capture(self):
-        # self.running = True
-        # self.disable_buttons()
-        # camera_control = CameraControl()
-        # display_height = self.capture_tab.children[1].children[0].winfo_height()
-        # display_width = self.capture_tab.children[1].children[0].winfo_width()
-        # image = camera_control.capture_image(self.auto_imager.usb, display_height, display_width)
-        # self.display_image(image)
-        # self.running = False
-        # self.enable_buttons()
-
-        # Load image from downloads
-        image_path = "/Users/coenwerre/Downloads/Domme foto.JPG"
-        image = Image.open(image_path)
-
-        # Convert image to numpy array
-        image_array = np.array(image)
-        self.display_image(image_array)
+        self.running = True
+        self.disable_buttons()
+        camera_control = CameraControl()
+        capture_display = self.capture_tab.children['!ctkframe2'].children['!ctkframe']
+        display_height = capture_display.winfo_height()
+        display_width = capture_display.winfo_width()
+        image = camera_control.capture_image(self.auto_imager.usb, display_height, display_width)
+        self.display_image(image)
+        self.running = False
+        self.enable_buttons()
         
     def toggle_stream(self):
         pass
@@ -214,22 +207,19 @@ class VAST360CaptureApp(ctk.CTk):
     
     def display_image(self, image):
         capture_display = self.capture_tab.children['!ctkframe2'].children['!ctkframe']
-        pil_image = Image.fromarray(image)
+        pil_image = Image.fromarray(image, mode='RGB')
         
         # Get current display size
         display_width = capture_display.winfo_width() or 400
         display_height = capture_display.winfo_height() or 300
         
         # Resize image
-        pil_image.thumbnail((display_width, display_height), Resampling.LANCZOS)
+        pil_image = pil_image.resize((display_width, display_height), Resampling.LANCZOS)
         
         # Convert to PhotoImage
         photo = ctk.CTkImage(dark_image=pil_image, size=(display_width, display_height))
         label = ctk.CTkLabel(capture_display, image=photo, text='')
         label.place(relx=0.5, rely=0.5, anchor="center")
-        
-        # # Update the label
-        # capture_display.configure(label=label)
 
 if __name__ == "__main__":
     ctk.set_appearance_mode("dark")

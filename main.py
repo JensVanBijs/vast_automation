@@ -1,3 +1,4 @@
+import datetime
 from controllers.Usb2Comm import Usb2Comm
 from controllers.led_control import LedCtrl, LedSettings
 from controllers.motor_control import Motor
@@ -36,7 +37,7 @@ class AutoImager():
         self.led.InitDac(LedSettings())
         self.microscope = MicroscopeManager()
 
-    def snap_images(self, motor: Motor, microscope: MicroscopeManager, dir: str):
+    def snap_images(self, dir: str):
         """
         Captures a series of images using a microscope and saves them to a specified directory.
         Args:
@@ -54,10 +55,10 @@ class AutoImager():
         """
         try:
             for i in range(500):
-                img = microscope.snap_picture()
-                microscope.wait()
+                img = self.microscope.snap_picture()
+                self.microscope.wait()
                 cv2.imwrite(f"{dir}/img_{i}.tiff", img)
-                motor.RotateToPos(1, 10, 300, 20)
+                self.rotational_motor.RotateToPos(1, 10, 300, 20)
                 time.sleep(0.2)
         except Exception as e:
             print(e)
@@ -65,7 +66,7 @@ class AutoImager():
             self.destroy_empty_img_dir(dir)
             cv2.destroyAllWindows()
 
-    def get_leica_images(self, motor, led, zoom: list, fluorescence: list, microscope: MicroscopeManager, date_time: str):
+    def get_leica_images(self, zoom: list, fluorescence: list, date_time: str):
         """
         Captures images using a Leica microscope setup with specified zoom levels and fluorescence filters.
         Args:
@@ -78,16 +79,16 @@ class AutoImager():
         Returns:
             None
         """
-        motor.IniMotor(True)
-        led.LedOnOff(1, False, 1)
+        self.rotational_motor.IniMotor(True)
+        self.led.LedOnOff(1, False, 1)
         for z in zoom:
             for f in fluorescence:
                 dir = self.create_img_directory(date_time=date_time, control=False, zoom=z, fluorescence=f)
-                microscope.switch_filter(f)
-                microscope.wait()
-                microscope.switch_objective(z)
-                microscope.wait()
-                self.snap_images(motor, microscope, dir)
+                self.microscope.switch_filter(f)
+                self.microscope.wait()
+                self.microscope.switch_objective(z)
+                self.microscope.wait()
+                self.snap_images(dir)
 
     def get_control_images(self, motor, led, date_time):
         """
@@ -156,4 +157,6 @@ class AutoImager():
     
 if __name__ == "__main__":
     imager = AutoImager()
-    imager.get_leica_images()
+    now = datetime.datetime.now()
+    date_time = now.strftime("%Y-%m-%d %H-%M-%S")
+    imager.get_leica_images(['2.5x'], ['White'], date_time)
