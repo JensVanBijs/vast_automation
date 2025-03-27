@@ -1,5 +1,5 @@
 import numpy as np
-from controllers.led_control import LedCtrl, LedSettings
+from controllers.LED_Control import LedCtrl, LedSettings
 from controllers.Usb2Comm import Usb2Comm
 from vimba import Vimba, Camera, Frame, FrameStatus, intersect_pixel_formats, BAYER_PIXEL_FORMATS, VimbaFeatureError, PixelFormat
 import cv2

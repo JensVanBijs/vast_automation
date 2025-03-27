@@ -1,25 +1,41 @@
 import time
 import customtkinter as ctk
-from main import AutoImager
+#from main import AutoImager
 from PIL import Image, ImageTk
 from PIL.Image import Resampling
 import numpy as np
-from controllers.vast_camera_control import CameraControl
+#from controllers.vast_camera_control import CameraControl
 
 class VAST360CaptureApp(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self.auto_imager = AutoImager()
+        #self.auto_imager = AutoImager()
         self.running = False
         self.streaming = False
 
         self.pos_var = ctk.IntVar(value=1)   # Define pos_var
         self.rot_var = ctk.IntVar(value=10)
 
+        self.exposure_var = ctk.DoubleVar(value=200.0)
+
         # Configure window
         self.title("Automatic VAST 360 Capture")
         self.geometry("900x600")
+
+        # sample ID
+        self.status_frame = ctk.CTkFrame(self, height=30, corner_radius=0)
+        self.status_frame.pack(fill="x", pady=(0, 5))
+
+        self.sample_info_frame = ctk.CTkFrame(self.status_frame, fg_color="#444")
+        self.sample_info_frame.pack(side="left", padx=10, fill="y")
+        
+        self.sample_id_label = ctk.CTkLabel(self.sample_info_frame, text="Sample ID: ", width=100)
+        self.sample_id_label.pack(side="left", padx=5)
+        
+        self.sample_id_entry = ctk.CTkEntry(self.sample_info_frame, width=150)
+        self.sample_id_entry.pack(side="left", padx=5)
+        self.sample_id_entry.insert(0, f"EXP-{time.strftime('%Y%m%d')}-001")
 
         # Tabs 
         self.tab_view = ctk.CTkTabview(self, corner_radius=10)
@@ -45,17 +61,36 @@ class VAST360CaptureApp(ctk.CTk):
         fluorescence_label = ctk.CTkLabel(left_frame, text="Fluorescence", font=("Arial", 14, "bold"))
         fluorescence_label.pack(padx=10, pady=(10, 5), anchor="w")
 
-        fluorescence_options = ["White", "Green", "Blue"]
+        channel_label = ctk.CTkLabel(left_frame, text="Channel Selection", font=("Arial", 12))
+        channel_label.pack(padx=10, pady=(5, 5), anchor="w")
+
+        fluorescence_options = ["White (brightfield)", "Green (340 nm, CH1)", "Blue (430 nm, CH2)"]
         self.fluorescence_vars = {}
+    
         for option in fluorescence_options:
-            var = ctk.StringVar(value="on")
+            var = ctk.StringVar(value="off")
             checkbox = ctk.CTkCheckBox(left_frame, text=option, variable=var, onvalue="on", offvalue="off")
             checkbox.pack(anchor="w", padx=10)
-
             spacer = ctk.CTkFrame(left_frame, height=10, fg_color='transparent') 
             spacer.pack()
-
             self.fluorescence_vars[option] = var
+
+        # exposure settings 
+        exposure_label = ctk.CTkLabel(left_frame, text="Exposure Settings", font=("Arial", 14))
+        exposure_label.pack(padx=10, pady=(15, 5), anchor="w")
+        
+        exposure_frame = ctk.CTkFrame(left_frame, fg_color="transparent")
+        exposure_frame.pack(fill="x", padx=10, pady=5)
+        
+        exposure_value_label = ctk.CTkLabel(exposure_frame, text="Exposure:")
+        exposure_value_label.pack(side="left")
+        
+        exposure_entry = ctk.CTkEntry(exposure_frame, width=60, textvariable=self.exposure_var)
+        exposure_entry.pack(side="left", padx=5)
+        
+        exposure_unit = ctk.CTkLabel(exposure_frame, text="ms")
+        exposure_unit.pack(side="left")
+
 
         # Magnification section
         magnification_label = ctk.CTkLabel(left_frame, text="Magnification", font=("Arial", 14, "bold"))
@@ -64,7 +99,7 @@ class VAST360CaptureApp(ctk.CTk):
         magnification_options = ["2.5x", "4x", "10x"]
         self.magnification_vars = {}
         for option in magnification_options:
-            var = ctk.StringVar(value="on")
+            var = ctk.StringVar(value="off")
             checkbox = ctk.CTkCheckBox(left_frame, text=option, variable=var, onvalue="on", offvalue="off")
             checkbox.pack(anchor="w", padx=10)
             spacer = ctk.CTkFrame(left_frame, height=10, fg_color='transparent')  # Adjust height for spacing
@@ -76,10 +111,10 @@ class VAST360CaptureApp(ctk.CTk):
         right_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
 
         # Display area
-        capture_display = ctk.CTkFrame(right_frame, height=300, width=400, fg_color="black")
-        capture_display.pack(padx=10, pady=10, expand=True, fill="both")
+        self.capture_display = ctk.CTkFrame(right_frame, height=300, width=400, fg_color="black")
+        self.capture_display.pack(padx=10, pady=10, expand=True, fill="both")
 
-        label = ctk.CTkLabel(capture_display, text="Stream / Test capture", text_color="white")
+        label = ctk.CTkLabel(self.capture_display, text="Stream / Test capture", text_color="white")
         label.place(relx=0.5, rely=0.5, anchor="center")
 
         # Buttons
@@ -171,12 +206,12 @@ class VAST360CaptureApp(ctk.CTk):
     def on_test_capture(self):
         self.running = True
         self.disable_buttons()
-        camera_control = CameraControl()
+        # camera_control = CameraControl()
         capture_display = self.capture_tab.children['!ctkframe2'].children['!ctkframe']
         display_height = capture_display.winfo_height()
         display_width = capture_display.winfo_width()
-        image = camera_control.capture_image(self.auto_imager.usb, display_height, display_width)
-        self.display_image(image)
+        # image = camera_control.capture_image(self.auto_imager.usb, display_height, display_width)
+        # self.display_image(image)
         self.running = False
         self.enable_buttons()
         
