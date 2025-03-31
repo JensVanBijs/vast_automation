@@ -2,7 +2,7 @@ import datetime
 from controllers.Usb2Comm import Usb2Comm
 from controllers.led_control import LedCtrl, LedSettings
 from controllers.motor_control import Motor
-from controllers.leica_control import MicroscopeManager
+from controllers.LEICA_control import MicroscopeManager
 from controllers.vast_camera_control import CameraControl, Handler
 from enum import Enum
 import time

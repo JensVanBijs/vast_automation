@@ -1,16 +1,16 @@
 import time
 import customtkinter as ctk
-#from main import AutoImager
+from main import AutoImager
 from PIL import Image, ImageTk
 from PIL.Image import Resampling
 import numpy as np
-#from controllers.vast_camera_control import CameraControl
+from controllers.vast_camera_control import CameraControl
 
 class VAST360CaptureApp(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        #self.auto_imager = AutoImager()
+        self.auto_imager = AutoImager()
         self.running = False
         self.streaming = False
 
@@ -206,17 +206,40 @@ class VAST360CaptureApp(ctk.CTk):
     def on_test_capture(self):
         self.running = True
         self.disable_buttons()
-        # camera_control = CameraControl()
+        camera_control = CameraControl()
         capture_display = self.capture_tab.children['!ctkframe2'].children['!ctkframe']
         display_height = capture_display.winfo_height()
         display_width = capture_display.winfo_width()
-        # image = camera_control.capture_image(self.auto_imager.usb, display_height, display_width)
-        # self.display_image(image)
+        image = camera_control.capture_image(self.auto_imager.usb, display_height, display_width)
+        self.display_image(image)
         self.running = False
         self.enable_buttons()
         
     def toggle_stream(self):
-        pass
+        self.streaming = True
+        self.disable_buttons()
+        self.stream_btn.configure(text="Sreaming...", fg_color="red", hover_color="darkred")
+        capture_display = self.capture_tab.children['!ctkframe2'].children['!ctkframe']
+        display_height = capture_display.winfo_height()
+        display_width = capture_display.winfo_width()
+        camera_control = CameraControl()
+        try:
+            label = ctk.CTkLabel(capture_display, text="Starting streaming...", text_color="white")
+            label.place(relx=0.5, rely=0.5, anchor="center")
+            self.update()
+            stream_duration = 30
+            start_time = time.time()
+            while time.time() - start_time < stream_duration:
+                frame = camera_control.capture_image(self.auto_imager.usb, display_height, display_width)
+                self.display_image(frame)
+                self.update()
+                time.sleep(0.0003)
+                if not hasattr(self, 'winfo_exists') or not self.winfo_exists():
+                    break
+        finally:
+            self.streaming = False
+            self.stream_btn.configure(text="Stream", fg_color="green", hover_color="darkgreen")
+            self.enable_buttons()
 
     def on_run(self):
         pass
