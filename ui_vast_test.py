@@ -5,6 +5,7 @@ from PIL import Image, ImageTk
 from PIL.Image import Resampling
 import numpy as np
 from controllers.vast_camera_control import CameraControl
+import cv2
 
 class VAST360CaptureApp(ctk.CTk):
     def __init__(self):
@@ -265,16 +266,14 @@ class VAST360CaptureApp(ctk.CTk):
     
     def display_image(self, image):
         capture_display = self.capture_tab.children['!ctkframe2'].children['!ctkframe']
-        pil_image = Image.fromarray(image, mode='RGB')
-        
-        # Get current display size
+        img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    
         display_width = capture_display.winfo_width() or 400
         display_height = capture_display.winfo_height() or 300
+        img = cv2.resize(img, (display_width, display_height))
+
+        pil_image = Image.fromarray(img)
         
-        # Resize image
-        pil_image = pil_image.resize((display_width, display_height), Resampling.LANCZOS)
-        
-        # Convert to PhotoImage
         photo = ctk.CTkImage(dark_image=pil_image, size=(display_width, display_height))
         label = ctk.CTkLabel(capture_display, image=photo, text='')
         label.place(relx=0.5, rely=0.5, anchor="center")
