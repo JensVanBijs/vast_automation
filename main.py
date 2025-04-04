@@ -90,7 +90,7 @@ class AutoImager():
                 self.microscope.wait()
                 self.snap_images(dir)
 
-    def get_control_images(self, motor, led, date_time):
+    def get_control_images(self, date_time):
         """
         Captures control images using a camera, motor, and LED setup.
         Parameters:

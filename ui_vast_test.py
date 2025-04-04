@@ -5,7 +5,9 @@ from PIL import Image, ImageTk
 from PIL.Image import Resampling
 import numpy as np
 from controllers.vast_camera_control import CameraControl
+from controllers.motor_control import Motor
 import cv2
+from datetime import datetime
 
 class VAST360CaptureApp(ctk.CTk):
     def __init__(self):
@@ -19,6 +21,12 @@ class VAST360CaptureApp(ctk.CTk):
         self.rot_var = ctk.IntVar(value=10)
 
         self.exposure_var = ctk.DoubleVar(value=200.0)
+
+        # initialize motors
+        self.pos_motor = None
+        self.rot_motor = None
+
+        self.init_motors()
 
         # Configure window
         self.title("Automatic VAST 360 Capture")
@@ -51,6 +59,23 @@ class VAST360CaptureApp(ctk.CTk):
 
         # Motor tab
         self.create_motor_tab()
+
+    def init_motors(self):
+        try:
+            self.pos_motor = Motor(self.auto_imager.usb, motIdx=2)
+            self.pos_motor.IniMotor(True)
+            time.sleep(1)
+
+            self.rot_motor = Motor(self.auto_imager.usb, motIdx=1)
+            self.rot_motor.IniMotor(True)
+            time.sleep(1)
+
+            self.update_status("Motors initialized succesfully")
+            
+        
+        except Exception as e:
+            self.update_status(f"Error initializing motors: {e}")
+           
 
     def create_capture_tab(self):
         """ Create the Capture tab UI """
@@ -162,10 +187,10 @@ class VAST360CaptureApp(ctk.CTk):
         pos_button_frame = ctk.CTkFrame(motor_frame, fg_color="transparent")
         pos_button_frame.pack(pady=5)
 
-        self.pos_btn_left = ctk.CTkButton(pos_button_frame, text="←", width=40)
+        self.pos_btn_left = ctk.CTkButton(pos_button_frame, text="←", width=40, command=self.move_pos_motor_left)
         self.pos_btn_left.pack(side="left", padx=5)
 
-        self.pos_btn_right = ctk.CTkButton(pos_button_frame, text="→", width=40)
+        self.pos_btn_right = ctk.CTkButton(pos_button_frame, text="→", width=40, command=self.move_pos_motor_right)
         self.pos_btn_right.pack(side="left", padx=5)
 
         # Rotational Motor Controls
@@ -179,10 +204,10 @@ class VAST360CaptureApp(ctk.CTk):
         rot_button_frame = ctk.CTkFrame(motor_frame, fg_color="transparent")
         rot_button_frame.pack(pady=5)
 
-        self.rot_btn_left = ctk.CTkButton(rot_button_frame, text="⟲", width=40)
+        self.rot_btn_left = ctk.CTkButton(rot_button_frame, text="⟲", width=40, command=self.rotate_motor_ccw)
         self.rot_btn_left.pack(side="left", padx=5)
 
-        self.rot_btn_right = ctk.CTkButton(rot_button_frame, text="⟳", width=40)
+        self.rot_btn_right = ctk.CTkButton(rot_button_frame, text="⟳", width=40, command=self.rotate_motor_cw)
         self.rot_btn_right.pack(side="left", padx=5)
 
 
@@ -190,19 +215,69 @@ class VAST360CaptureApp(ctk.CTk):
         right_frame = ctk.CTkFrame(self.motor_tab, fg_color="gray30")
         right_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
 
-        stream_display = ctk.CTkFrame(right_frame, height=300, width=400, fg_color="black")
-        stream_display.pack(padx=10, pady=10, expand=True, fill="both")
+        self.motor_stream_display = ctk.CTkFrame(right_frame, height=300, width=400, fg_color="black")
+        self.motor_stream_display.pack(padx=10, pady=10, expand=True, fill="both")
 
-        stream_label = ctk.CTkLabel(stream_display, text="Stream", text_color="white")
+        stream_label = ctk.CTkLabel(self.motor_stream_display, text="Stream", text_color="white")
         stream_label.place(relx=0.5, rely=0.5, anchor="center")
 
-        self.stream_btn = ctk.CTkButton(right_frame, text="Stream", fg_color="green", hover_color="darkgreen")
-        self.stream_btn.pack(pady=10)
+        self.motor_stream_btn = ctk.CTkButton(right_frame, text="Stream", fg_color="green", hover_color="darkgreen", command=self.toggle_stream)
+        self.motor_stream_btn.pack(pady=10)
 
         # Grid configuration
         self.motor_tab.grid_columnconfigure(0, weight=1)
         self.motor_tab.grid_columnconfigure(1, weight=3)
         self.motor_tab.grid_rowconfigure(0, weight=1)
+
+    def move_pos_motor_left(self):
+        try:
+            if self.pos_motor:
+                distance = self.pos_var.get()
+                print(f"Moving positional motor left by {distance} steps")
+                self.pos_motor.move_z_motor(distance, "left")
+                self.update_status(f"Moved positional motor left by {distance} steps")
+            else:
+                self.update_status("Positional motor not initialized")
+        except Exception as e:
+            self.update_status(f"Error moving positional motor: {e}")
+        
+    def move_pos_motor_right(self):
+        try:
+            if self.pos_motor:
+                distance = self.pos_var.get()
+                print(f"Moving positional motor right by {distance} steps")
+                self.pos_motor.move_z_motor(distance, "right")
+                self.update_status(f"Moved positional motor right by {distance} steps")
+            else:
+                self.update_status("Positional motor not initialized")
+        except Exception as e:
+            self.update_status(f"Error moving positional motor: {e}")
+
+    def rotate_motor_ccw(self):
+        try:
+            if self.rot_motor:
+                degree = self.rot_var.get()
+                print(f"Rotating motor counterclockwise by {degree} degrees")
+                self.rot_motor.SelectMotor()
+                self.rot_motor.RotateToPos(degree, 5, 500000, 0)
+                self.update_status(f"Rotated motor counterclockwise by {degree} degrees")
+            else:
+                self.update_status("Rotational motor not initialized")
+        except Exception as e:
+            self.update_status(f"Error rotating motor: {e}")
+
+    def rotate_motor_cw(self):
+        try:
+            if self.rot_motor:
+                degree = self.rot_var.get()
+                print(f"Rotating motor clockwise by {degree} degrees")
+                self.rot_motor.SelectMotor()
+                self.rot_motor.RotateToPos(-degree, 5, 500000, 0)
+                self.update_status(f"Rotated motor clockwise by {degree} degrees")
+            else:
+                self.update_status("Rotational motor not initialized")
+        except Exception as e:
+            self.update_status(f"Error rotating motor: {e}")
     
     def on_test_capture(self):
         self.running = True
@@ -212,7 +287,7 @@ class VAST360CaptureApp(ctk.CTk):
         display_height = capture_display.winfo_height()
         display_width = capture_display.winfo_width()
         image = camera_control.capture_image(self.auto_imager.usb, display_height, display_width)
-        self.display_image(image)
+        self.display_image(image, capture_display)
         self.running = False
         self.enable_buttons()
         
@@ -220,6 +295,21 @@ class VAST360CaptureApp(ctk.CTk):
         self.streaming = True
         self.disable_buttons()
         self.stream_btn.configure(text="Sreaming...", fg_color="red", hover_color="darkred")
+
+        # current_tab = self.tab_view.get()
+        # if current_tab == "Capture":
+        #     # capture_display = self.capture_tab.children['!ctkframe2'].children['!ctkframe']
+        #     capture_display = self.capture_display
+        #     active_btn = self.stream_btn
+        # else:
+        #     # capture_display = self.motor_tab.children['!ctkframe2'].children['!ctkframe'] 
+        #     capture_display = self.motor_stream_display
+        #     active_btn = self.motor_stream_btn
+
+        # self.streaming = True
+        # self.disable_buttons()
+        # active_btn.configure(text="Sreaming...", fg_color="red", hover_color="darkred")
+
         capture_display = self.capture_tab.children['!ctkframe2'].children['!ctkframe']
         display_height = capture_display.winfo_height()
         display_width = capture_display.winfo_width()
@@ -228,11 +318,11 @@ class VAST360CaptureApp(ctk.CTk):
             label = ctk.CTkLabel(capture_display, text="Starting streaming...", text_color="white")
             label.place(relx=0.5, rely=0.5, anchor="center")
             self.update()
-            stream_duration = 30
+            stream_duration = 10
             start_time = time.time()
             while time.time() - start_time < stream_duration:
                 frame = camera_control.capture_image(self.auto_imager.usb, display_height, display_width)
-                self.display_image(frame)
+                self.display_image(frame, capture_display)
                 self.update()
                 time.sleep(0.0003)
                 if not hasattr(self, 'winfo_exists') or not self.winfo_exists():
@@ -264,7 +354,7 @@ class VAST360CaptureApp(ctk.CTk):
         self.stream_btn.configure(require_redraw=True, state="normal")
         self.run_btn.configure(require_redraw=True, state="normal", fg_color='green')
     
-    def display_image(self, image):
+    def display_image(self, image, capture_display):
         capture_display = self.capture_tab.children['!ctkframe2'].children['!ctkframe']
         img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     
@@ -277,6 +367,9 @@ class VAST360CaptureApp(ctk.CTk):
         photo = ctk.CTkImage(dark_image=pil_image, size=(display_width, display_height))
         label = ctk.CTkLabel(capture_display, image=photo, text='')
         label.place(relx=0.5, rely=0.5, anchor="center")
+
+    def update_status(self, message):
+        print(message)
 
 if __name__ == "__main__":
     ctk.set_appearance_mode("dark")
