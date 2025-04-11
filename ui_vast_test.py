@@ -5,9 +5,12 @@ from PIL import Image, ImageTk
 from PIL.Image import Resampling
 import numpy as np
 from controllers.vast_camera_control import CameraControl
+from PIL import Image
 from controllers.motor_control import Motor
 import cv2
 from datetime import datetime
+from main import AutoImager
+from controllers.LEICA_control import MicroscopeManager
 
 class VAST360CaptureApp(ctk.CTk):
     def __init__(self):
@@ -17,14 +20,20 @@ class VAST360CaptureApp(ctk.CTk):
         self.running = False
         self.streaming = False
 
-        self.pos_var = ctk.IntVar(value=1)   # Define pos_var
+        try:
+            self.microscope = MicroscopeManager()
+        except Exception as e:
+            self.microscope = None
+            print(f"Error initializing microscope: {e}")
+
+        self.pos_var = ctk.IntVar(value=10)   
         self.rot_var = ctk.IntVar(value=10)
 
         self.exposure_var = ctk.DoubleVar(value=200.0)
 
         # initialize motors
-        self.pos_motor = None
-        self.rot_motor = None
+        self.pos_motor = self.auto_imager.z_positional_motor
+        self.rot_motor = self.auto_imager.rotational_motor
 
         self.init_motors()
 
@@ -72,9 +81,16 @@ class VAST360CaptureApp(ctk.CTk):
 
             self.update_status("Motors initialized succesfully")
             
-        
+            print(self.pos_motor, self.rot_motor)
         except Exception as e:
             self.update_status(f"Error initializing motors: {e}")
+
+    # def init_motors(self):
+    #     if self.pos_motor and self.rot_motor:
+    #         print(self.pos_motor, self.rot_motor)
+    #         self.update_status("Motors initialized successfully")
+    #     else:
+    #         self.update_status(f"Error initializing motors: {e}")
            
 
     def create_capture_tab(self):
@@ -116,6 +132,9 @@ class VAST360CaptureApp(ctk.CTk):
         
         exposure_unit = ctk.CTkLabel(exposure_frame, text="ms")
         exposure_unit.pack(side="left")
+
+        exposure_apply_btn = ctk.CTkButton(left_frame, text="Apply", width=60, fg_color="orange", hover_color="darkorange", command=self.apply_exposure)
+        exposure_apply_btn.pack(pady=(5, 10), anchor="w", padx=10)
 
 
         # Magnification section
@@ -180,6 +199,16 @@ class VAST360CaptureApp(ctk.CTk):
         pos_label = ctk.CTkLabel(motor_frame, text="Positional motor", font=("Arial", 14, "bold"))
         pos_label.pack(pady=(10, 5), anchor="center")
 
+        preset_frame = ctk.CTkFrame(motor_frame, fg_color="transparent")
+        preset_frame.pack(pady=5)
+
+        preset_label = ctk.CTkLabel(preset_frame, text="Step size:")
+        preset_label.pack(side="left", padx=5)
+
+        for preset in [1, 5, 10, 25]:
+            preset_btn = ctk.CTkButton(preset_frame, text=str(preset), width=30, command=lambda p=preset: self.pos_var.set(p))
+            preset_btn.pack(side="left", padx=5)
+
         pos_control = ctk.CTkEntry(motor_frame, textvariable=self.pos_var, width=50)
         pos_control.pack(pady=5)
 
@@ -193,9 +222,25 @@ class VAST360CaptureApp(ctk.CTk):
         self.pos_btn_right = ctk.CTkButton(pos_button_frame, text="→", width=40, command=self.move_pos_motor_right)
         self.pos_btn_right.pack(side="left", padx=5)
 
+        self.pos_reset_btn = ctk.CTkButton(pos_button_frame, text="Reset", width=40, command=self.reset_pos_motor)
+        self.pos_reset_btn.pack(padx=5)
+
+        separator = ctk.CTkFrame(motor_frame, height=2, width=200, fg_color="gray")
+        separator.pack(pady=10, fill="x")
+
         # Rotational Motor Controls
         rot_label = ctk.CTkLabel(motor_frame, text="Rotational motor", font=("Arial", 14, "bold"))
         rot_label.pack(pady=(10, 5), anchor="center")
+
+        rot_preset_frame = ctk.CTkFrame(motor_frame, fg_color="transparent")
+        rot_preset_frame.pack(pady=5)
+
+        rot_preset_label = ctk.CTkLabel(rot_preset_frame, text="Degree:")
+        rot_preset_label.pack(side="left", padx=5)
+
+        for preset in [5, 10, 45, 90]:
+            rot_preset_btn = ctk.CTkButton(rot_preset_frame, text=str(preset), width=30, command=lambda p=preset: self.rot_var.set(p))
+            rot_preset_btn.pack(side="left", padx=2)
 
         rot_control = ctk.CTkEntry(motor_frame, textvariable=self.rot_var, width=50)
         rot_control.pack(pady=5)
@@ -210,6 +255,14 @@ class VAST360CaptureApp(ctk.CTk):
         self.rot_btn_right = ctk.CTkButton(rot_button_frame, text="⟳", width=40, command=self.rotate_motor_cw)
         self.rot_btn_right.pack(side="left", padx=5)
 
+        self.rot_preset_btn = ctk.CTkButton(rot_button_frame, text="Reset", width=40, command=self.reset_rot_motor)
+        self.rot_preset_btn.pack(padx=5)
+
+        separator2 = ctk.CTkFrame(motor_frame, height=2, width=200, fg_color="gray")
+        separator2.pack(pady=10, fill="x")
+
+        self.full_reset_btn = ctk.CTkButton(motor_frame, text="Full Reset", width=100, fg_color="orange", hover_color="darkorange", command=self.full_reset_motors)
+        self.full_reset_btn.pack(pady=5)
 
         # Right section: Streaming
         right_frame = ctk.CTkFrame(self.motor_tab, fg_color="gray30")
@@ -228,6 +281,24 @@ class VAST360CaptureApp(ctk.CTk):
         self.motor_tab.grid_columnconfigure(0, weight=1)
         self.motor_tab.grid_columnconfigure(1, weight=3)
         self.motor_tab.grid_rowconfigure(0, weight=1)
+
+    def apply_exposure(self):
+        
+        try:
+            if not hasattr(self, 'microscope') or self.microscope is None:
+                self.update_status("Microscope not initialized")
+                return
+            exposure_value = self.exposure_var.get()
+            if exposure_value <= 0:
+                self.update_status("Exposure time must be positive")
+                return
+            
+            microscope = MicroscopeManager()
+            microscope.core.setExposure(exposure_value) 
+
+            self.update_status(f"Exposure time set to {exposure_value} ms")
+        except Exception as e:
+            self.update_status(f"Error applying exposure: {e}")
 
     def move_pos_motor_left(self):
         try:
@@ -278,6 +349,47 @@ class VAST360CaptureApp(ctk.CTk):
                 self.update_status("Rotational motor not initialized")
         except Exception as e:
             self.update_status(f"Error rotating motor: {e}")
+
+    def reset_pos_motor(self):
+        try:
+            if self.pos_motor:
+                self.pos_motor.SelectMotor()
+                self.pos_motor.ResetPos()
+                self.update_status("Positional motor reset")
+            else:
+                self.update_status("Positional motor not initialized")
+        except Exception as e:
+            self.update_status(f"Error resetting positional motor: {e}")
+
+    def reset_rot_motor(self):
+        try:
+            if self.rot_motor:
+                self.rot_motor.SelectMotor()
+                self.rot_motor.ResetPos()
+                self.update_status("Rotational motor reset")
+            else:
+                self.update_status("Rotational motor not initialized")
+        except Exception as e:
+            self.update_status(f"Error resetting rotational motor: {e}")
+
+    def full_reset_motors(self):
+        self.reset_pos_motor()
+        time.sleep(1)
+        self.reset_rot_motor()  
+
+    def perform_full_rotation(self):
+        try:
+            if self.rot_motor:
+                self.rot_motor.SelectMotor()
+                for _ in range(4):
+                    self.rot_motor.RotateToPos(90, 5, 500000, 0)
+                    time.sleep(1)
+
+                self.update_status("Full rotation performed")
+            else:
+                self.update_status("Rotational motor not initialized")
+        except Exception as e:
+            self.update_status(f"Error performing full rotation: {e}")
     
     def on_test_capture(self):
         self.running = True
@@ -360,7 +472,7 @@ class VAST360CaptureApp(ctk.CTk):
     
         display_width = capture_display.winfo_width() or 400
         display_height = capture_display.winfo_height() or 300
-        img = cv2.resize(img, (display_width, display_height))
+        img = cv2.resize(img, (capture_display.winfo_width(), capture_display.winfo_height()))
 
         pil_image = Image.fromarray(img)
         
