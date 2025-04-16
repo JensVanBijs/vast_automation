@@ -121,22 +121,27 @@ class AutoImager():
                     print("Failed to set camera position")
                     print(e)
                     pass
-                motor.IniMotor(True)
-                led.LedOnOff(1, True, 1)
+                self.rotational_motor.IniMotor(True)
+                self.led.LedOnOff(1, True, 1)
                 dir = self.create_img_directory(date_time, control = True)
                 try:
+                    cam_pixel_format = camera.get_pixel_format()
                     for i in range(500):
-                        img = camera.get_frame()
-                        img_array = img.as_opencv_image()
+                        frame = camera.get_frame()
+                        # img_array = img.as_opencv_image()
+                        if cam_pixel_format == PixelFormat.BGRA:
+                            frame.convert_pixel_format(PixelFormat.Bgr8)
+                        img_array = frame.as_opencv_image()
                         cv2.imwrite(f"{dir}/img_{i}.tiff", img_array)
-                        motor.RotateToPos(1, 10, 300, 20)
+                        self.rotational_motor.RotateToPos(1, 10, 300, 20)
                         time.sleep(0.2)
                 except Exception as e:
                     print(e)
                 finally:
                     self.destroy_empty_img_dir(dir)
                     cv2.destroyAllWindows()
-                    led.LedOnOff(1, False, 1)
+                    self.led.LedOnOff(1, False, 1)
+
 
     def destroy_empty_img_dir(self, dir):
         import os
@@ -159,4 +164,6 @@ if __name__ == "__main__":
     imager = AutoImager()
     now = datetime.datetime.now()
     date_time = now.strftime("%Y-%m-%d %H-%M-%S")
+    imager.get_control_images(imager.rotational_motor, imager.led, date_time)
+    # Uncomment the following lines to capture images with specific zoom and fluorescence settings
     imager.get_leica_images(['2.5x'], ['White'], date_time)

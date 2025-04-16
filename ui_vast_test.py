@@ -1,3 +1,4 @@
+from itertools import tee
 import time
 import customtkinter as ctk
 from main import AutoImager
@@ -11,6 +12,8 @@ import cv2
 from datetime import datetime
 from main import AutoImager
 from controllers.LEICA_control import MicroscopeManager
+import os
+import xml.etree.ElementTree as ET
 
 class VAST360CaptureApp(ctk.CTk):
     def __init__(self):
@@ -92,7 +95,6 @@ class VAST360CaptureApp(ctk.CTk):
     #     else:
     #         self.update_status(f"Error initializing motors: {e}")
            
-
     def create_capture_tab(self):
         """ Create the Capture tab UI """
         # Left section: Fluorescence & Magnification
@@ -180,8 +182,7 @@ class VAST360CaptureApp(ctk.CTk):
                                         command=self.toggle_stream)
         self.stream_btn.pack(side="left", padx=5, expand=True, fill="x")
 
-
-        self.run_btn = ctk.CTkButton(button_frame, text="Run", fg_color="green", hover_color="darkgreen")
+        self.run_btn = ctk.CTkButton(button_frame, text="Run", fg_color="green", hover_color="darkgreen", command=self.on_run)
         self.run_btn.pack(side="left", padx=5, expand=True, fill="x")
 
         # Grid configuration
@@ -282,8 +283,7 @@ class VAST360CaptureApp(ctk.CTk):
         self.motor_tab.grid_columnconfigure(1, weight=3)
         self.motor_tab.grid_rowconfigure(0, weight=1)
 
-    def apply_exposure(self):
-        
+    def apply_exposure(self):    
         try:
             if not hasattr(self, 'microscope') or self.microscope is None:
                 self.update_status("Microscope not initialized")
@@ -292,10 +292,7 @@ class VAST360CaptureApp(ctk.CTk):
             if exposure_value <= 0:
                 self.update_status("Exposure time must be positive")
                 return
-            
-            microscope = MicroscopeManager()
-            microscope.core.setExposure(exposure_value) 
-
+            self.microscope.core.setExposure(exposure_value)
             self.update_status(f"Exposure time set to {exposure_value} ms")
         except Exception as e:
             self.update_status(f"Error applying exposure: {e}")
@@ -376,20 +373,6 @@ class VAST360CaptureApp(ctk.CTk):
         self.reset_pos_motor()
         time.sleep(1)
         self.reset_rot_motor()  
-
-    def perform_full_rotation(self):
-        try:
-            if self.rot_motor:
-                self.rot_motor.SelectMotor()
-                for _ in range(4):
-                    self.rot_motor.RotateToPos(90, 5, 500000, 0)
-                    time.sleep(1)
-
-                self.update_status("Full rotation performed")
-            else:
-                self.update_status("Rotational motor not initialized")
-        except Exception as e:
-            self.update_status(f"Error performing full rotation: {e}")
     
     def on_test_capture(self):
         self.running = True
@@ -445,18 +428,97 @@ class VAST360CaptureApp(ctk.CTk):
             self.enable_buttons()
 
     def on_run(self):
-        pass
+        magnification_options, lighting_options = self.get_magnification_and_lighting_options()
+        self.running = True
+        self.disable_buttons()
+        now = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.auto_imager.get_control_images(now)
+        self.auto_imager.microscope.wait()
+        self.auto_imager.get_leica_images(magnification_options, lighting_options, now)
+        self.auto_imager.microscope.wait()
+        self.running = False
+        self.enable_buttons()
 
+        # magnification_options, lighting_options = self.get_magnification_and_lighting_options()
+        # self.running = True
+        # self.disable_buttons()
+
+        # try:
+        #     sample_id = self.sample_id_entry.get().strip()
+        #     timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+        #     folder_name = sample_id or f"Sample_{timestamp_str.replace(':', '_')}"
+        #     save_dir = os.path.join("captured_data", folder_name)
+        #     os.makedirs(save_dir, exist_ok=True)
+
+        #     self.auto_imager.get_control_images(timestamp_str)
+        #     self.auto_imager.microscope.wait()
+        #     self.auto_imager.get_leica_images(magnification_options, lighting_options, timestamp_str)
+        #     self.auto_imager.microscope.wait()
+
+        #     root = ET.Element("experiment")
+        #     ET.SubElement(root, "sample_id").text = sample_id
+        #     ET.SubElement(root, "timestamp").text = timestamp_str
+
+        #     lighting_elem = ET.SubElement(root, "lighting")
+        #     for light in lighting_options:
+        #         ET.SubElement(lighting_elem, "channel").text = light
+
+        #     mag_elem = ET.SubElement(root, "magnification")
+        #     for mag in magnification_options:
+        #         ET.SubElement(mag_elem, "objective").text = mag
+
+        #     ET.SubElement(root, "Exposuretime").text = str(self.exposure_var.get())
+        #     ET.SubElement(root, "Rotationsteps").text = str(self.rot_var.get())
+        #     ET.SubElement(root, "ImageDirectory").text = save_dir
+
+        #     xml_path = os.path.join(save_dir, f"{sample_id}_metadata.xml")
+        #     tree = ET.ElementTree(root)
+        #     tree.write(xml_path)
+        #     self.update_status(f"Metadata saved to {xml_path}")
+        # except Exception as e:
+        #     self.update_status(f"Error during run: {e}")
+
+        # self.running = False
+        # self.enable_buttons()
+
+    def get_magnification_and_lighting_options(self):
+        checkboxes = [ c for c in self.capture_tab.children['!ctkframe'].children.values() if isinstance(c, ctk.CTkCheckBox) ]
+        filter_map = {
+            "White (brightfield)": "White", 
+            "Green (340 nm, CH1)": "Green",
+            "Blue (430 nm, CH2)": "Blue"
+        }
+        objective_map = {
+        "2.5x": "2.5x",  
+        "4x": "4x",
+        "10x": "10x"
+        }
+        lighting_options = []
+        for c in checkboxes[:3]:
+            if c.get() == "on":
+                checkbox_text = c.cget("text")
+                if checkbox_text in filter_map:
+                    lighting_options.append(filter_map[checkbox_text])
+                else:
+                    print(f"Warning: No mapping found for '{checkbox_text}'")
+        magnification_options = []
+        for c in checkboxes[3:]:
+            if c.get() == "on":
+                checkbox_text = c.cget("text")
+                if checkbox_text in objective_map:
+                    magnification_options.append(objective_map[checkbox_text])
+                else:
+                    print(f"Warning: No mapping found for magnification option '{checkbox_text}'")
+
+        return magnification_options, lighting_options
+    
     def disable_buttons(self):
         if not self.running:
             return
-        
         if self.streaming:
-             # If streaming, only keep stream button enabled
             self.test_capture_btn.configure(require_redraw=True, state="disabled", fg_color='gray', hover_color='gray')
             self.run_btn.configure(require_redraw=True, state="disabled", fg_color='gray', hover_color='gray')
         else:
-            # If not streaming, disable all buttons except the current active one
             self.test_capture_btn.configure(require_redraw=True, state="disabled")
             self.stream_btn.configure(require_redraw=True, state="disabled")
             self.run_btn.configure(require_redraw=True, state="disabled")
