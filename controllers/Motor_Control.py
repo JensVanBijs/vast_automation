@@ -62,15 +62,15 @@ class Motor():
         cmd_string = f"aM{self._motorInd}"
         if self.usbComm == None:
             return
-        
+        # print(self.usbComm.SendAllMotionBuffer(cmd_string, System.Byte(49)))
         self.usbComm.SendAllMotionBuffer(cmd_string, System.Byte(49))
         time.sleep(0.5)
 
     def move_z_motor(self, dist: int, direction: str):
         if self._motorInd != 2:
-            # Exception()
-            # return
-            raise Exception("Motor index is not 2. Cannot move Z motor.")
+            Exception()
+            return
+            # raise Exception("Motor index is not 2. Cannot move Z motor.")
         
         self.SelectMotor()
 

@@ -96,10 +96,8 @@ class VAST360CaptureApp(ctk.CTk):
             self.rot_motor = Motor(self.auto_imager.usb, motIdx=1)
             self.rot_motor.IniMotor(True)
             time.sleep(1)
-
+           
             self.update_status("Motors initialized succesfully")
-            
-            print(self.pos_motor, self.rot_motor)
         except Exception as e:
             self.update_status(f"Error initializing motors: {e}")
            
@@ -252,9 +250,6 @@ class VAST360CaptureApp(ctk.CTk):
         self.pos_btn_right = ctk.CTkButton(pos_button_frame, text="→", width=40, command=self.move_pos_motor_right)
         self.pos_btn_right.pack(side="left", padx=5)
 
-        # self.pos_reset_btn = ctk.CTkButton(pos_button_frame, text="Reset", width=40, command=self.reset_pos_motor)
-        # self.pos_reset_btn.pack(padx=5)
-
         separator = ctk.CTkFrame(motor_frame, height=2, width=200, fg_color="gray")
         separator.pack(pady=10, fill="x")
 
@@ -285,14 +280,8 @@ class VAST360CaptureApp(ctk.CTk):
         self.rot_btn_right = ctk.CTkButton(rot_button_frame, text="⟳", width=40, command=self.rotate_motor_cw)
         self.rot_btn_right.pack(side="left", padx=5)
 
-        # self.rot_preset_btn = ctk.CTkButton(rot_button_frame, text="Reset", width=40, command=self.reset_rot_motor)
-        # self.rot_preset_btn.pack(padx=5)
-
         separator2 = ctk.CTkFrame(motor_frame, height=2, width=200, fg_color="gray")
         separator2.pack(pady=10, fill="x")
-
-        # self.full_reset_btn = ctk.CTkButton(motor_frame, text="Full Reset", width=100, fg_color="orange", hover_color="darkorange", command=self.full_reset_motors)
-        # self.full_reset_btn.pack(pady=5)
 
         # Right section: Test capture
         right_frame = ctk.CTkFrame(self.motor_tab, fg_color="gray30")
@@ -332,7 +321,10 @@ class VAST360CaptureApp(ctk.CTk):
                 distance = self.pos_var.get()
                 print(f"Moving positional motor left by {distance} steps")
                 self.pos_motor.SelectMotor()
+                print(self.pos_motor)
                 self.pos_motor.move_z_motor(distance, "left")
+                print(self.pos_motor.move_z_motor(distance, "left"))
+
                 self.update_status(f"Moved positional motor left by {distance} steps")
             else:
                 self.update_status("Positional motor not initialized")
@@ -387,33 +379,6 @@ class VAST360CaptureApp(ctk.CTk):
                 self.update_status("Rotational motor not initialized")
         except Exception as e:
             self.update_status(f"Error rotating motor: {e}")
-
-    # def reset_pos_motor(self):
-    #     try:
-    #         if self.pos_motor:
-    #             self.pos_motor.SelectMotor()
-    #             self.pos_motor.ResetPos()
-    #             self.update_status("Positional motor reset")
-    #         else:
-    #             self.update_status("Positional motor not initialized")
-    #     except Exception as e:
-    #         self.update_status(f"Error resetting positional motor: {e}")
-
-    # def reset_rot_motor(self):
-    #     try:
-    #         if self.rot_motor:
-    #             self.rot_motor.SelectMotor()
-    #             self.rot_motor.ResetPos()
-    #             self.update_status("Rotational motor reset")
-    #         else:
-    #             self.update_status("Rotational motor not initialized")
-    #     except Exception as e:
-    #         self.update_status(f"Error resetting rotational motor: {e}")
-
-    # def full_reset_motors(self):
-    #     self.reset_pos_motor()
-    #     time.sleep(1)
-    #     self.reset_rot_motor()  
     
     def on_test_capture(self):
         try:
@@ -442,12 +407,18 @@ class VAST360CaptureApp(ctk.CTk):
     def test_capture_motor(self):
         self.running = True
         self.disable_buttons()
+        exposure_value = self.exposure_var.get()
+        if exposure_value <= 0:
+            self.update_status("Exposure time must be positive")
+            self.running = False
+            self.enable_buttons()
+            return
         camera_control = CameraControl()
         capture_display = self.motor_tab.children['!ctkframe2'].children['!ctkframe']
         display_height = self.motor_test_capture_display.winfo_height()
         display_width = self.motor_test_capture_display.winfo_width()
         current_brightness = self.led1_brightness.get()
-        image = camera_control.capture_image(self.auto_imager.usb, display_height, display_width, led_brightness=current_brightness)
+        image = camera_control.capture_image(self.auto_imager.usb, display_height, display_width, led_brightness=current_brightness, exposure_ms=exposure_value)
         self.display_image(image, capture_display)
         self.running = False
         self.enable_buttons()
