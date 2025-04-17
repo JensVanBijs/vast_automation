@@ -19,7 +19,7 @@ class CameraControl():
         ledctrl.LedOnOff(1, True, 1)
         return ledctrl
 
-    def setup_camera(self, camera: Camera, height = 720, width = 1280):
+    def setup_camera(self, camera: Camera, height = 720, width = 1280, exposure_ms=None):
         with camera:
             try: 
                 camera.get_feature_by_name('Height').set(height)   
@@ -28,7 +28,13 @@ class CameraControl():
                 pass
 
             try:
-                camera.ExposureAuto.set('Continuous')
+                if exposure_ms is not None:
+                    camera.ExposureAuto.set('Off')
+                    camera.ExposureTimeAbs.set(exposure_ms * 1000.0)
+                else:
+                    camera.ExposureAuto.set('Continuous')
+                    
+                # camera.ExposureAuto.set('Continuous')
                 camera.BalanceWhiteAuto.set('Continuous')
                 camera.GVSPAdjustPacketSize.run()
 
@@ -69,8 +75,8 @@ class CameraControl():
 
         cv2.destroyAllWindows()
 
-    def capture_image(self, usb: Usb2Comm, height: int = 720, width: int = 1280):
-        led_control = self.turn_on_led(usb, 0.25)
+    def capture_image(self, usb: Usb2Comm, height: int = 720, width: int = 1280, led_brightness: float = 0.25, exposure_ms=None):
+        led_control = self.turn_on_led(usb, led_brightness)
         with Vimba.get_instance() as vimba:
             cameras = vimba.get_all_cameras()
             if not cameras:
@@ -79,7 +85,7 @@ class CameraControl():
             camera: Camera
             img: Frame
             with cameras[0] as camera:
-                self.setup_camera(camera)
+                self.setup_camera(camera, exposure_ms)
                 img = camera.get_frame()
                 img.convert_pixel_format(PixelFormat.Bgr8)
                 img = img.as_numpy_ndarray()
