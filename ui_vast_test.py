@@ -7,7 +7,7 @@ from PIL.Image import Resampling
 import numpy as np
 from controllers.vast_camera_control import CameraControl
 from PIL import Image
-from controllers.motor_control import Motor
+from controllers.Motor_Control import Motor
 import cv2
 from datetime import datetime
 from main import AutoImager
@@ -428,54 +428,15 @@ class VAST360CaptureApp(ctk.CTk):
         self.running = True
         self.disable_buttons()
         now = datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.auto_imager.get_control_images(now)
+        sample_id = self.sample_id_entry.get()
+        if not sample_id:
+            sample_id = now
+        self.auto_imager.get_control_images(sample_id)
         self.auto_imager.microscope.wait()
-        self.auto_imager.get_leica_images(magnification_options, lighting_options, now)
+        self.auto_imager.get_leica_images(magnification_options, lighting_options, sample_id)
         self.auto_imager.microscope.wait()
         self.running = False
         self.enable_buttons()
-
-        # magnification_options, lighting_options = self.get_magnification_and_lighting_options()
-        # self.running = True
-        # self.disable_buttons()
-
-        # try:
-        #     sample_id = self.sample_id_entry.get().strip()
-        #     timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-        #     folder_name = sample_id or f"Sample_{timestamp_str.replace(':', '_')}"
-        #     save_dir = os.path.join("captured_data", folder_name)
-        #     os.makedirs(save_dir, exist_ok=True)
-
-        #     self.auto_imager.get_control_images(timestamp_str)
-        #     self.auto_imager.microscope.wait()
-        #     self.auto_imager.get_leica_images(magnification_options, lighting_options, timestamp_str)
-        #     self.auto_imager.microscope.wait()
-
-        #     root = ET.Element("experiment")
-        #     ET.SubElement(root, "sample_id").text = sample_id
-        #     ET.SubElement(root, "timestamp").text = timestamp_str
-
-        #     lighting_elem = ET.SubElement(root, "lighting")
-        #     for light in lighting_options:
-        #         ET.SubElement(lighting_elem, "channel").text = light
-
-        #     mag_elem = ET.SubElement(root, "magnification")
-        #     for mag in magnification_options:
-        #         ET.SubElement(mag_elem, "objective").text = mag
-
-        #     ET.SubElement(root, "Exposuretime").text = str(self.exposure_var.get())
-        #     ET.SubElement(root, "Rotationsteps").text = str(self.rot_var.get())
-        #     ET.SubElement(root, "ImageDirectory").text = save_dir
-
-        #     xml_path = os.path.join(save_dir, f"{sample_id}_metadata.xml")
-        #     tree = ET.ElementTree(root)
-        #     tree.write(xml_path)
-        #     self.update_status(f"Metadata saved to {xml_path}")
-        # except Exception as e:
-        #     self.update_status(f"Error during run: {e}")
-
-        # self.running = False
-        # self.enable_buttons()
 
     def get_magnification_and_lighting_options(self):
         checkboxes = [ c for c in self.capture_tab.children['!ctkframe'].children.values() if isinstance(c, ctk.CTkCheckBox) ]

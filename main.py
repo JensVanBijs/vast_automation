@@ -1,7 +1,7 @@
 import datetime
 from controllers.Usb2Comm import Usb2Comm
 from controllers.led_control import LedCtrl, LedSettings
-from controllers.motor_control import Motor
+from controllers.Motor_Control import Motor
 from controllers.LEICA_control import MicroscopeManager
 from controllers.vast_camera_control import CameraControl, Handler
 from enum import Enum
@@ -66,7 +66,7 @@ class AutoImager():
             self.destroy_empty_img_dir(dir)
             cv2.destroyAllWindows()
 
-    def get_leica_images(self, zoom: list, fluorescence: list, date_time: str):
+    def get_leica_images(self, zoom: list, fluorescence: list, sample_id: str):
         """
         Captures images using a Leica microscope setup with specified zoom levels and fluorescence filters.
         Args:
@@ -83,14 +83,15 @@ class AutoImager():
         self.led.LedOnOff(1, False, 1)
         for z in zoom:
             for f in fluorescence:
-                dir = self.create_img_directory(date_time=date_time, control=False, zoom=z, fluorescence=f)
+                dir = self.create_img_directory(sample_id, control=False, zoom=z, fluorescence=f)
                 self.microscope.switch_filter(f)
                 self.microscope.wait()
                 self.microscope.switch_objective(z)
                 self.microscope.wait()
                 self.snap_images(dir)
 
-    def get_control_images(self, date_time):
+
+    def get_control_images(self, sample_id):
         """
         Captures control images using a camera, motor, and LED setup.
         Parameters:
@@ -123,25 +124,26 @@ class AutoImager():
                     pass
                 self.rotational_motor.IniMotor(True)
                 self.led.LedOnOff(1, True, 1)
-                dir = self.create_img_directory(date_time, control = True)
+                dir = self.create_img_directory(sample_id, control = True)
                 try:
-                    cam_pixel_format = camera.get_pixel_format()
+                # Get the camera's pixel format
+                    cam_pixel_format = camera.get_feature_by_name('PixelFormat').get()
                     for i in range(500):
                         frame = camera.get_frame()
-                        # img_array = img.as_opencv_image()
-                        if cam_pixel_format == PixelFormat.BGRA:
+                        # Handle Bayer formats by converting to a compatible format
+                        if 'Bayer' in str(cam_pixel_format):
+                            # Convert Bayer to BGR format that OpenCV can handle
                             frame.convert_pixel_format(PixelFormat.Bgr8)
                         img_array = frame.as_opencv_image()
                         cv2.imwrite(f"{dir}/img_{i}.tiff", img_array)
                         self.rotational_motor.RotateToPos(1, 10, 300, 20)
                         time.sleep(0.2)
                 except Exception as e:
-                    print(e)
+                    print(f"Error during image capture: {e}")
                 finally:
                     self.destroy_empty_img_dir(dir)
                     cv2.destroyAllWindows()
                     self.led.LedOnOff(1, False, 1)
-
 
     def destroy_empty_img_dir(self, dir):
         import os
