@@ -68,11 +68,7 @@ class Motor():
 
     def move_z_motor(self, dist: int, direction: str):
         if self._motorInd != 2:
-            Exception()
-            return
-            # raise Exception("Motor index is not 2. Cannot move Z motor.")
-        
-        self.SelectMotor()
+            raise Exception("Motor index is not 2. Cannot move Z motor.")
 
         if direction.lower() == "left":
             cmd = f"aM2P{dist}"

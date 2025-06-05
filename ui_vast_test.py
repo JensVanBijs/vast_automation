@@ -114,7 +114,7 @@ class VAST360CaptureApp(ctk.CTk):
         channel_label = ctk.CTkLabel(left_frame, text="Channel Selection", font=("Arial", 12))
         channel_label.pack(padx=10, pady=(5, 5), anchor="w")
 
-        fluorescence_options = ["White (brightfield)", "Green (340 nm, CH1)", "Blue (430 nm, CH2)"]
+        fluorescence_options = ["White (brightfield)", "Green (430 nm, CH1, visualizes red fluorescence)", "Blue (340 nm, CH2, visualizes green fluorescence)"]
         self.fluorescence_vars = {}
     
         for option in fluorescence_options:
@@ -341,7 +341,6 @@ class VAST360CaptureApp(ctk.CTk):
                     self.update_status("Invalid distance value")
                     return  
                 print(f"Moving positional motor right by {distance} steps")
-                self.pos_motor.SelectMotor()
                 self.pos_motor.move_z_motor(distance, "right")
                 self.update_status(f"Moved positional motor right by {distance} steps")
             else:
@@ -442,8 +441,8 @@ class VAST360CaptureApp(ctk.CTk):
         checkboxes = [ c for c in self.capture_tab.children['!ctkframe'].children.values() if isinstance(c, ctk.CTkCheckBox) ]
         filter_map = {
             "White (brightfield)": "White", 
-            "Green (340 nm, CH1)": "Green",
-            "Blue (430 nm, CH2)": "Blue"
+            "Green (430 nm, CH1, visualizes red fluorescence)": "Green",
+            "Blue (340 nm, CH2, visualizes green fluorescence)": "Blue"
         }
         objective_map = {
         "2.5x": "2.5x",  
