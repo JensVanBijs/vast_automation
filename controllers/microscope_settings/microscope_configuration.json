@@ -1,23 +1,23 @@
 {
   "objectives": {
     "2.5x": {
-      "bf_zheight": 20370.46962890625,
+      "bf_zheight": 19459.40478515625,
       "fluo_zheight": 17319.3913671875,
-      "brightness": 90,
+      "brightness": 100,
       "turret_location": 2,
       "positions": 1
     },
     "4x": {
-      "bf_zheight": 23878.49529296875,
-      "fluo_zheight": 23853.7407421875,
-      "brightness": 50,
+      "bf_zheight": 27200.732500000002,
+      "fluo_zheight": 27376.068359375,
+      "brightness": 80,
       "turret_location": 4,
       "positions": 2
     },
     "10x": {
-      "bf_zheight": 17114.2344140625,
-      "fluo_zheight": 17134.652734375,
-      "brightness": 50,
+      "bf_zheight": 20578.0153125,
+      "fluo_zheight": 20541.2866796875,
+      "brightness": 80,
       "turret_location": 0,
       "positions": 4
     }
@@ -26,17 +26,17 @@
     "White": {
       "filter_location": 1,
       "fluorescence": 0,
-      "exposure": 4
+      "exposure": 10
     },
     "Green": {
       "filter_location": 0,
       "fluorescence": 1,
-      "exposure": 25
+      "exposure": 5000
     },
     "Blue": {
       "filter_location": 3,
       "fluorescence": 1,
-      "exposure": 10000
+      "exposure": 5000
     }
   }
 }

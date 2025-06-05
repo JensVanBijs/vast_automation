@@ -1,4 +1,5 @@
 import datetime
+import shutil
 from controllers.Usb2Comm import Usb2Comm
 from controllers.led_control import LedCtrl, LedSettings
 from controllers.Motor_Control import Motor
@@ -57,7 +58,7 @@ class AutoImager():
             for i in range(500):
                 img = self.microscope.snap_picture()
                 self.microscope.wait()
-                cv2.imwrite(f"{dir}/img_{i}.tiff", img)
+                self.microscope.save_picture(img, f"{dir}/img_{i}.tiff")
                 self.rotational_motor.RotateToPos(1, 10, 300, 20)
                 time.sleep(0.2)
         except Exception as e:
@@ -65,6 +66,7 @@ class AutoImager():
         finally:
             self.destroy_empty_img_dir(dir)
             cv2.destroyAllWindows()
+        return
 
     def get_leica_images(self, zoom: list, fluorescence: list, sample_id: str):
         """
@@ -84,12 +86,35 @@ class AutoImager():
         for z in zoom:
             for f in fluorescence:
                 dir = self.create_img_directory(sample_id, control=False, zoom=z, fluorescence=f)
-                self.microscope.switch_filter(f)
-                self.microscope.wait()
                 self.microscope.switch_objective(z)
                 self.microscope.wait()
+                self.microscope.switch_filter(f)
+                self.microscope.wait()
                 self.snap_images(dir)
+        return
 
+    def test_image(self, test_name, fluorescence, zoom):
+        """
+        Captures a test image using the microscope and saves it to a specified directory.
+        Args:
+            test_name (str): The name of the test, used to create a directory for saving images.
+        Returns:
+            None
+        """
+        try:
+            dir = self.create_img_directory(test_name, False, zoom, fluorescence)
+            self.led.LedOnOff(1, False, 1)
+            self.microscope.switch_objective(zoom)
+            self.microscope.wait()
+            self.microscope.switch_filter(fluorescence)
+            self.microscope.wait()
+            img = self.microscope.snap_picture()
+            self.microscope.wait()
+            self.microscope.save_picture(img, f"{dir}/test_image.tiff")
+        except Exception as e:
+            print(f"Error during test image capture: {e}")
+            self.destroy_empty_img_dir(dir)
+        return
 
     def get_control_images(self, sample_id):
         """
@@ -166,6 +191,6 @@ if __name__ == "__main__":
     imager = AutoImager()
     now = datetime.datetime.now()
     date_time = now.strftime("%Y-%m-%d %H-%M-%S")
-    imager.get_control_images(imager.rotational_motor, imager.led, date_time)
+    # imager.get_control_images(date_time)
     # Uncomment the following lines to capture images with specific zoom and fluorescence settings
-    imager.get_leica_images(['2.5x'], ['White'], date_time)
+    imager.test_image('test', "Blue", "4x")

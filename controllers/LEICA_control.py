@@ -102,7 +102,8 @@ class MicroscopeManager:
 
     @property
     def objective(self):
-        return self._objectives.value
+        dict = {0: "10x", 2: "2.5x", 4: "4x"}
+        return dict.get(self._objectives.value)
     
     @objective.setter
     def objective(self, value):
@@ -133,23 +134,26 @@ class MicroscopeManager:
         plt.imshow(self.image)
 
     def save_picture(self, picture, filename):
-        dirpath = os.path.dirname(os.path.abspath(__file__)) 
-        data_dir = os.path.abspath(f"{dirpath}/../data")
-        plt.imshow(picture)
+        # dirpath = os.path.dirname(os.path.abspath(__file__)) 
+        # data_dir = os.path.abspath(f"{dirpath}/../data")
+        # plt.imshow(picture)
         img = Image.fromarray(picture)
-        img.save(os.path.join(data_dir, filename))
+        img.save(filename)
 
     def switch_objective(self, name):
         objectives = self.config['objectives']
         if name not in objectives:
             raise ValueError(f"{name} is not a valid objective name.")
         objective = objectives[name]
+        if objective['turret_location'] == self.objective:
+            return
 
         self.objective = objective['turret_location']
         self.core.setZPosition(objective['bf_zheight'])
         self.brightness = objective['brightness']
 
     def switch_filter(self, name):
+        self.light = 0
         filters = self.config["filters"]
         if name not in filters:
             raise MicroscopeManagerError(f"{name} is not a valid filter name.")
