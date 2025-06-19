@@ -147,7 +147,6 @@ class MicroscopeManager:
         objective = objectives[name]
         if objective['turret_location'] == self.objective:
             return
-
         self.objective = objective['turret_location']
         self.core.setZPosition(objective['bf_zheight'])
         self.brightness = objective['brightness']

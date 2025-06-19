@@ -69,7 +69,7 @@ class AutoImager():
             cv2.destroyAllWindows()
         return
 
-    def get_leica_images(self, zoom: list, fluorescence: list, sample_id: str):
+    def get_leica_images(self, zoom: list, fluorescence: list, sample_id: str, progress_callback=None):
         """
         Captures images using a Leica microscope setup with specified zoom levels and fluorescence filters.
         Args:
@@ -156,7 +156,7 @@ class AutoImager():
                 try:
                 # Get the camera's pixel format
                     cam_pixel_format = camera.get_feature_by_name('PixelFormat').get()
-                    for i in range(500):
+                    for i in range(5):
                         frame: Frame
                         frame = camera.get_frame()
                         # Handle Bayer formats by converting to a compatible format

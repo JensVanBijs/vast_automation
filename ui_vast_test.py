@@ -15,10 +15,22 @@ from controllers.LEICA_control import MicroscopeManager
 import os
 import xml.etree.ElementTree as ET
 from controllers.led_control import LedCtrl, LedSettings
+import json
+from pathlib import Path
+
+CONFIG_Path = Path(__file__).parent / "controllers" / "microscope_settings" / "microscope_configuration.json"
+
+try:
+    with open(CONFIG_Path, 'r', encoding='utf-8') as f:
+        IMAGING_CONFIG = json.load(f)
+except Exception as e:
+    raise RuntimeError(f"Failed to load microscope configuration from {CONFIG_Path}: {e}")
 
 class VAST360CaptureApp(ctk.CTk):
     def __init__(self):
         super().__init__()
+
+        self.imaging_config = IMAGING_CONFIG
 
         self.auto_imager = AutoImager()
         self.running = False
@@ -247,7 +259,8 @@ class VAST360CaptureApp(ctk.CTk):
                 "category": "📷 Imaging Optimization",
                 "tips": [
                     "For fluorescence imaging, minimize ambient light in the room", 
-                    "Adjust the microscropic camera such that it is properly focused on the zebrafish"
+                    "Adjust the microscropic camera such that it is properly focused on the zebrafish",
+                    "To adjust exposure time or brightness, change it in controllers/microscope_settings/microscope_configuration.json"
                 ]
             },
             {
@@ -384,6 +397,43 @@ class VAST360CaptureApp(ctk.CTk):
         label = ctk.CTkLabel(self.capture_display, text="Test capture", text_color="white")
         label.place(relx=0.5, rely=0.5, anchor="center")
 
+        # Progress section
+        progress_frame = ctk.CTkFrame(right_frame, fg_color="#6B6B6B", corner_radius=10)
+        progress_frame.pack(fill="x", padx=10, pady=(0, 10))
+
+        # Time estimation display
+        self.time_info_frame = ctk.CTkFrame(progress_frame, fg_color="transparent")
+        self.time_info_frame.pack(fill="x", padx=10, pady=5)
+
+        self.time_estimate_label = ctk.CTkLabel(self.time_info_frame, text="Estimated time: --", 
+                                            font=("Arial", 12, "bold"))
+        self.time_estimate_label.pack(anchor="w")
+
+        self.time_remaining_label = ctk.CTkLabel(self.time_info_frame, text="Time remaining: --", 
+                                            font=("Arial", 11))
+        self.time_remaining_label.pack(anchor="w")
+
+        # Progress bar container
+        progress_container = ctk.CTkFrame(progress_frame, fg_color="transparent")
+        progress_container.pack(pady=10)
+
+        # Create circular progress bar canvas
+        self.progress_canvas = ctk.CTkCanvas(progress_container, width=120, height=120, 
+                                    bg="#6B6B6B", highlightthickness=0)
+        self.progress_canvas.pack()
+
+        # Progress text labels
+        self.progress_text_label = ctk.CTkLabel(progress_frame, text="0 / 0 images", 
+                                            font=("Arial", 11))
+        self.progress_text_label.pack()
+
+        self.progress_percentage_label = ctk.CTkLabel(progress_frame, text="0%", 
+                                                    font=("Arial", 14, "bold"))
+        self.progress_percentage_label.pack()
+
+        # Update time estimation when checkboxes change
+        self.bind_checkbox_updates()
+
         # Buttons
         button_frame = ctk.CTkFrame(right_frame, fg_color="transparent")
         button_frame.pack(fill="x", padx=10, pady=10)
@@ -398,10 +448,131 @@ class VAST360CaptureApp(ctk.CTk):
         self.run_btn = ctk.CTkButton(button_frame, text="Run", fg_color="green", hover_color="darkgreen", command=self.on_run)
         self.run_btn.pack(side="left", padx=5, expand=True, fill="x")
 
+        # initialize progress bar 
+        self.draw_progress_circle(0)
+        self.update_time_estimation()
+
         # Grid configuration
         self.capture_tab.grid_columnconfigure(0, weight=1)
         self.capture_tab.grid_columnconfigure(1, weight=3)
         self.capture_tab.grid_rowconfigure(0, weight=1)
+
+    def bind_checkbox_updates(self):
+        """ Bind checkbox changes to update time estimation """
+        # This needs to be called after checkboxes are created
+        def update_estimation(*args):
+            self.after(100, self.update_time_estimation)  # Small delay to ensure checkbox state is updated
+        
+        # Bind to all fluorescence and magnification checkboxes
+        for var in self.fluorescence_vars.values():
+            var.trace_add("write", update_estimation)
+        
+        for var in self.magnification_vars.values():
+            var.trace_add("write", update_estimation)
+
+    def calculate_imaging_time(self):
+        """ Calculate total imaging time based on selected options """
+        magnification_options, lighting_options = self.get_magnification_and_lighting_options()
+        
+        if not magnification_options or not lighting_options:
+            return 0, 0
+        
+        total_time_ms = 0
+        total_images = 0
+        images_per_channel = 500
+        
+        for mag in magnification_options:
+            for channel in lighting_options:
+                if mag in self.imaging_config["objectives"] and channel in self.imaging_config["filters"]:
+                    exposure_time = self.imaging_config["filters"][channel]["exposure"]
+                    channel_time = images_per_channel * exposure_time
+                    total_time_ms += channel_time
+                    total_images += images_per_channel
+        
+        return total_time_ms, total_images
+
+    def format_time(self, milliseconds):
+        """ Format time from milliseconds to readable format """
+        if milliseconds == 0:
+            return "--"
+        
+        seconds = milliseconds / 1000
+        
+        if seconds < 60:
+            return f"{seconds:.1f}s"
+        elif seconds < 3600:
+            minutes = seconds / 60
+            return f"{minutes:.1f}m"
+        else:
+            hours = seconds / 3600
+            return f"{hours:.1f}h"
+
+    def update_time_estimation(self):
+        """ Update the time estimation display """
+        total_time_ms, total_images = self.calculate_imaging_time()
+        
+        self.total_images = total_images
+        self.estimated_time = total_time_ms
+        
+        formatted_time = self.format_time(total_time_ms)
+        self.time_estimate_label.configure(text=f"Estimated time: {formatted_time}")
+        
+        if total_images > 0:
+            self.progress_text_label.configure(text=f"0 / {total_images} images")
+        else:
+            self.progress_text_label.configure(text="0 / 0 images")
+
+    def draw_progress_circle(self, percentage):
+        """ Draw circular progress bar """
+        self.progress_canvas.delete("all")
+        
+        # Canvas dimensions
+        width = 120
+        height = 120
+        center_x = width // 2
+        center_y = height // 2
+        radius = 45
+        
+        # Background circle
+        self.progress_canvas.create_oval(center_x - radius, center_y - radius,
+                                    center_x + radius, center_y + radius,
+                                    outline="#404040", width=8, fill="")
+        
+        # Progress arc
+        if percentage > 0:
+            # Calculate angle (tkinter uses degrees, starting from 3 o'clock, going clockwise)
+            # We want to start from 12 o'clock, so we subtract 90 degrees
+            start_angle = 90  # Start from top
+            extent_angle = -(percentage / 100) * 360  # Negative for clockwise
+            
+            self.progress_canvas.create_arc(center_x - radius, center_y - radius,
+                                        center_x + radius, center_y + radius,
+                                        start=start_angle, extent=extent_angle,
+                                        outline="#4CAF50", width=8, style="arc")
+        
+        # Center text showing percentage
+        self.progress_canvas.create_text(center_x, center_y, text=f"{percentage:.1f}%",
+                                    fill="white", font=("Arial", 14, "bold"))
+
+    def update_progress(self, current_image):
+        """ Update progress bar and labels """
+        self.current_image = current_image
+        
+        if self.total_images > 0:
+            percentage = (current_image / self.total_images) * 100
+            self.draw_progress_circle(percentage)
+            self.progress_text_label.configure(text=f"{current_image} / {self.total_images} images")
+            self.progress_percentage_label.configure(text=f"{percentage:.1f}%")
+            
+            # Calculate remaining time
+            if self.start_time and current_image > 0:
+                elapsed_time = time.time() - self.start_time
+                avg_time_per_image = elapsed_time / current_image
+                remaining_images = self.total_images - current_image
+                remaining_time_seconds = remaining_images * avg_time_per_image
+                
+                remaining_time_formatted = self.format_time(remaining_time_seconds * 1000)
+                self.time_remaining_label.configure(text=f"Time remaining: {remaining_time_formatted}")
 
     def create_motor_tab(self):
         """ Create the Motor tab UI """
@@ -585,14 +756,19 @@ class VAST360CaptureApp(ctk.CTk):
         magnification_options, lighting_options = self.get_magnification_and_lighting_options()
         self.running = True
         self.disable_buttons()
+        self.start_time = time.time()
+        self.current_image = 0
+        self.update_progress(0)
         now = datetime.now().strftime("%Y%m%d_%H%M%S")
         sample_id = self.sample_id_entry.get()
         if not sample_id:
             sample_id = now
         self.auto_imager.get_control_images(sample_id)
         self.auto_imager.microscope.wait()
-        self.auto_imager.get_leica_images(magnification_options, lighting_options, sample_id)
+        self.auto_imager.get_leica_images(magnification_options, lighting_options, sample_id, progress_callback=self.update_progress)
         self.auto_imager.microscope.wait()
+        self.update_progress(self.total_images)
+        self.time_remaining_label.configure(text="Completed!")
         self.running = False
         self.enable_buttons()
 
