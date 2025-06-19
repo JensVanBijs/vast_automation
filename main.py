@@ -36,6 +36,7 @@ class AutoImager():
         self.z_positional_motor = Motor(self.usb, 2)
         self.led = LedCtrl(self.usb)
         self.led.InitDac(LedSettings())
+        self.led.SetCurrent(1, 1)
         self.microscope = MicroscopeManager()
 
     def snap_images(self, dir: str):
@@ -91,6 +92,8 @@ class AutoImager():
                 self.microscope.switch_filter(f)
                 self.microscope.wait()
                 self.snap_images(dir)
+        self.microscope.switch_filter("White")
+        self.microscope.wait()
         return
 
     def test_image(self, test_name, fluorescence, zoom):
@@ -154,13 +157,16 @@ class AutoImager():
                 # Get the camera's pixel format
                     cam_pixel_format = camera.get_feature_by_name('PixelFormat').get()
                     for i in range(500):
+                        frame: Frame
                         frame = camera.get_frame()
                         # Handle Bayer formats by converting to a compatible format
                         if 'Bayer' in str(cam_pixel_format):
                             # Convert Bayer to BGR format that OpenCV can handle
                             frame.convert_pixel_format(PixelFormat.Bgr8)
-                        img_array = frame.as_opencv_image()
-                        cv2.imwrite(f"{dir}/img_{i}.tiff", img_array)
+                        # img_array = frame.as_opencv_image()
+                        # cv2.imwrite(f"{dir}/img_{i}.tiff", img_array)
+                        img = Image.fromarray(frame.as_numpy_ndarray())
+                        img.save(f"{dir}/img_{i}.tiff")
                         self.rotational_motor.RotateToPos(1, 10, 300, 20)
                         time.sleep(0.2)
                 except Exception as e:
@@ -181,9 +187,9 @@ class AutoImager():
         
         dir_string = "Results/" + date_time
         if control:
-            dir_string += "/Control"
+            dir_string += "/Control/structure_images"
         else:
-            dir_string += f'/{zoom}/{fluorescence}'
+            dir_string += f'/{zoom}/{fluorescence}/structure_images'
         os.makedirs(dir_string)
         return dir_string
     

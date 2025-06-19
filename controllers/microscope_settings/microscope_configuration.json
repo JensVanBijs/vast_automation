@@ -10,7 +10,7 @@
     "4x": {
       "bf_zheight": 27200.732500000002,
       "fluo_zheight": 27376.068359375,
-      "brightness": 80,
+      "brightness": 100,
       "turret_location": 4,
       "positions": 2
     },
@@ -36,7 +36,7 @@
     "Blue": {
       "filter_location": 3,
       "fluorescence": 1,
-      "exposure": 5000
+      "exposure": 4000
     }
   }
 }

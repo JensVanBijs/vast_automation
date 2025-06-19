@@ -33,7 +33,7 @@ class VAST360CaptureApp(ctk.CTk):
         self.pos_var = ctk.IntVar(value=10)   
         self.rot_var = ctk.IntVar(value=10)
 
-        self.exposure_var = ctk.DoubleVar(value=200.0)
+        # self.exposure_var = ctk.DoubleVar(value=200.0)
 
         # initialieze LED settings and control
         self.led_settings = LedSettings()
@@ -78,8 +78,12 @@ class VAST360CaptureApp(ctk.CTk):
         self.tab_view.pack(fill="both", expand=True, padx=10, pady=10)
 
         # Create tabs 
+        self.manual_loading_tab = self.tab_view.add("Manual Loading")
         self.capture_tab = self.tab_view.add("Capture")
         self.motor_tab = self.tab_view.add("Motor")
+
+        # Manual loading tab
+        self.create_manual_loading_tab()
 
         # Capture tab 
         self.create_capture_tab()
@@ -100,7 +104,209 @@ class VAST360CaptureApp(ctk.CTk):
             self.update_status("Motors initialized succesfully")
         except Exception as e:
             self.update_status(f"Error initializing motors: {e}")
-           
+
+
+    def create_manual_loading_tab(self):
+        """ Create the Manual Loading tab UI """
+        # Main container frame
+        main_frame = ctk.CTkFrame(self.manual_loading_tab, fg_color="#7C7C7C", corner_radius=10)
+        main_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        # Title
+        title_label = ctk.CTkLabel(main_frame, text="Step-by-Step Guide for Manually Loading Zebrafish", 
+                                font=("Arial", 16, "bold"))
+        title_label.pack(pady=(20, 10))
+        
+        # Steps container with scrollable frame
+        steps_frame = ctk.CTkScrollableFrame(main_frame, fg_color="#6B6B6B", corner_radius=10)
+        steps_frame.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+        
+        # Define the steps
+        steps = [
+            "Open the VAST software",
+            "Flush the system with PRIME",
+            "Load the zebrafish into the tube and pump into the capillary with its manual pomping controls",
+            "Press LOAD to initialize loading",
+            "Once first image is visible, press Abort Operation",
+            "Exit VAST software and position your zebrafish from within the Capture and Motor tab",
+            "Select magnification and fluorescence options",
+            "Enter sample ID and press RUN"
+        ]
+        
+        # Create step widgets
+        self.step_widgets = []
+        for i, step_text in enumerate(steps, 1):
+            # Step container
+            step_container = ctk.CTkFrame(steps_frame, fg_color="#5A5A5A", corner_radius=8)
+            step_container.pack(fill="x", pady=5, padx=10)
+            
+            # Step content frame
+            step_content = ctk.CTkFrame(step_container, fg_color="transparent")
+            step_content.pack(fill="x", padx=15, pady=10)
+            
+            # Step number circle
+            step_number = ctk.CTkLabel(step_content, text=str(i), 
+                                    font=("Arial", 12, "bold"),
+                                    fg_color="#2196F3", 
+                                    corner_radius=15,
+                                    width=30, height=30)
+            step_number.pack(side="left", padx=(0, 15))
+            
+            # Step text
+            step_label = ctk.CTkLabel(step_content, text=step_text, 
+                                    font=("Arial", 12),
+                                    anchor="w",
+                                    justify="left")
+            step_label.pack(side="left", fill="x", expand=True)
+            
+            # Store reference for potential future use
+            self.step_widgets.append({
+                'container': step_container,
+                'number': step_number,
+                'label': step_label,
+                'completed': False
+            })
+        
+        # Tips button in bottom right corner
+        tips_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        tips_frame.pack(side="bottom", anchor="se", padx=40, pady=30)
+        
+        self.tips_button = ctk.CTkButton(tips_frame, 
+                                        text="💡 Click here for more tips",
+                                        font=("Arial", 14),
+                                        fg_color="#FFA500",
+                                        hover_color="#FF8C00",
+                                        corner_radius=20,
+                                        command=self.show_tips_popup)
+        self.tips_button.pack()
+
+        # Optional: Add functionality to mark steps as complete
+        self.add_step_completion_functionality()
+
+    def add_step_completion_functionality(self):
+        """ Add click functionality to mark steps as complete """
+        for i, step_widget in enumerate(self.step_widgets):
+            def make_click_handler(index):
+                def on_step_click(event=None):
+                    self.toggle_step_completion(index)
+                return on_step_click
+            
+            # Make the step clickable
+            click_handler = make_click_handler(i)
+            step_widget['container'].bind("<Button-1>", click_handler)
+            step_widget['number'].bind("<Button-1>", click_handler)
+            step_widget['label'].bind("<Button-1>", click_handler)
+
+    
+    def show_tips_popup(self):
+        """ Show tips popup window """
+        # Create popup window
+        tips_window = ctk.CTkToplevel(self)
+        tips_window.title("Loading and Imaging Tips")
+        tips_window.geometry("800x600")
+        tips_window.resizable(True, True)
+        
+        # Make window modal
+        tips_window.transient(self)
+        tips_window.grab_set()
+        
+        # Center the window
+        tips_window.after(100, lambda: tips_window.lift())
+        
+        # Main container
+        main_container = ctk.CTkFrame(tips_window, fg_color="#7C7C7C", corner_radius=10)
+        main_container.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        # Title
+        title = ctk.CTkLabel(main_container, text="💡 Helpful Tips for Loading and Imaging", 
+                            font=("Arial", 18, "bold"))
+        title.pack(pady=(15, 10))
+        
+        # Tips container with scrollable frame
+        tips_container = ctk.CTkScrollableFrame(main_container, fg_color="#6B6B6B", corner_radius=10)
+        tips_container.pack(fill="both", expand=True, padx=15, pady=(0, 15))
+        
+        # Define tips with categories
+        tips_data = [
+            {
+                "category": "🐟 Sample Preparation",
+                "tips": [
+                    "Put some soap in your petri dish, to ensure that the zebrafish travels smoothly through the tube",
+                    "Make sure that the container is filled up with enough water"
+                ]
+            },
+            {
+                "category": "🔧 Loading Process",
+                "tips": [
+                    "Prime the system thoroughly to remove all air bubbles before loading",
+                    "Load fish head-first for consistent orientation across samples",
+                    "If fish gets stuck, reverse the pump briefly and try again with less pressure"
+                ]
+            },
+            {
+                "category": "📷 Imaging Optimization",
+                "tips": [
+                    "For fluorescence imaging, minimize ambient light in the room", 
+                    "Adjust the microscropic camera such that it is properly focused on the zebrafish"
+                ]
+            },
+            {
+                "category": "⚡ Troubleshooting",
+                "tips": [
+                    "Motor movement issues? Check that motors are properly initialized before use",
+                    "If software becomes unresponsive, restart the application and re-initialize all components",
+                    "No view from microscopic camera? Make sure that the pin is properly extended"
+                ]
+            }
+        ]
+        
+        # Create tip sections
+        for section in tips_data:
+            # Category header
+            category_frame = ctk.CTkFrame(tips_container, fg_color="#5A5A5A", corner_radius=8)
+            category_frame.pack(fill="x", pady=(10, 5), padx=10)
+            
+            category_label = ctk.CTkLabel(category_frame, text=section["category"], 
+                                        font=("Arial", 14, "bold"),
+                                        anchor="w")
+            category_label.pack(anchor="w", padx=15, pady=10)
+            
+            # Tips for this category
+            for tip in section["tips"]:
+                tip_frame = ctk.CTkFrame(tips_container, fg_color="#4A4A4A", corner_radius=6)
+                tip_frame.pack(fill="x", pady=2, padx=20)
+                
+                tip_label = ctk.CTkLabel(tip_frame, text=f"• {tip}", 
+                                        font=("Arial", 13),
+                                        anchor="w",
+                                        justify="left",
+                                        wraplength=500)
+                tip_label.pack(anchor="w", padx=15, pady=8, fill="x")
+        
+        # Close button
+        close_button = ctk.CTkButton(main_container, text="Close", 
+                                    command=tips_window.destroy,
+                                    fg_color="#2196F3",
+                                    hover_color="#1976D2",
+                                    width=100)
+        close_button.pack(pady=(0, 15))
+
+
+    def toggle_step_completion(self, step_index):
+        """ Toggle completion status of a step """
+        step_widget = self.step_widgets[step_index]
+        
+        if step_widget['completed']:
+            # Mark as incomplete
+            step_widget['number'].configure(fg_color="#2196F3")
+            step_widget['container'].configure(fg_color="#5A5A5A")
+            step_widget['completed'] = False
+        else:
+            # Mark as complete
+            step_widget['number'].configure(fg_color="#4CAF50")
+            step_widget['container'].configure(fg_color="#4A4A4A")
+            step_widget['completed'] = True
+            
     def create_capture_tab(self):
         """ Create the Capture tab UI """
         # Left section: Fluorescence & Magnification
@@ -152,26 +358,6 @@ class VAST360CaptureApp(ctk.CTk):
                                     fg_color="orange", hover_color="darkorange", 
                                     command=self.apply_led_settings)
         led_apply_btn.pack(pady=(5, 10), anchor="w", padx=10)
-
-        # exposure settings 
-        exposure_label = ctk.CTkLabel(left_frame, text="Exposure Settings", font=("Arial", 14, "bold"))
-        exposure_label.pack(padx=10, pady=(15, 5), anchor="w")
-        
-        exposure_frame = ctk.CTkFrame(left_frame, fg_color="transparent")
-        exposure_frame.pack(fill="x", padx=10, pady=5)
-        
-        exposure_value_label = ctk.CTkLabel(exposure_frame, text="Exposure:")
-        exposure_value_label.pack(side="left")
-        
-        exposure_entry = ctk.CTkEntry(exposure_frame, width=60, textvariable=self.exposure_var)
-        exposure_entry.pack(side="left", padx=5)
-        
-        exposure_unit = ctk.CTkLabel(exposure_frame, text="ms")
-        exposure_unit.pack(side="left")
-
-        exposure_apply_btn = ctk.CTkButton(left_frame, text="Apply", width=60, fg_color="orange", hover_color="darkorange", command=self.apply_exposure)
-        exposure_apply_btn.pack(pady=(5, 10), anchor="w", padx=10)
-
 
         # Magnification section
         magnification_label = ctk.CTkLabel(left_frame, text="Magnification", font=("Arial", 14, "bold"))
@@ -290,7 +476,7 @@ class VAST360CaptureApp(ctk.CTk):
         self.motor_test_capture_display = ctk.CTkFrame(right_frame, height=300, width=400, fg_color="black")
         self.motor_test_capture_display.pack(padx=10, pady=10, expand=True, fill="both")
 
-        stream_label = ctk.CTkLabel(self.motor_test_capture_display, text="Stream", text_color="white")
+        stream_label = ctk.CTkLabel(self.motor_test_capture_display, text="Test Capture", text_color="white")
         stream_label.place(relx=0.5, rely=0.5, anchor="center")
 
         self.motor_test_capture_btn = ctk.CTkButton(right_frame, text="Test capture", fg_color="green", hover_color="darkgreen", command=self.test_capture_motor)
@@ -300,20 +486,6 @@ class VAST360CaptureApp(ctk.CTk):
         self.motor_tab.grid_columnconfigure(0, weight=1)
         self.motor_tab.grid_columnconfigure(1, weight=3)
         self.motor_tab.grid_rowconfigure(0, weight=1)
-
-    def apply_exposure(self):    
-        try:
-            if not hasattr(self, 'microscope') or self.microscope is None:
-                self.update_status("Microscope not initialized")
-                return
-            exposure_value = self.exposure_var.get()
-            if exposure_value <= 0:
-                self.update_status("Exposure time must be positive")
-                return
-            self.microscope.core.setExposure(exposure_value)
-            self.update_status(f"Exposure time set to {exposure_value} ms")
-        except Exception as e:
-            self.update_status(f"Error applying exposure: {e}")
 
     def move_pos_motor_left(self):
         try:
@@ -383,19 +555,12 @@ class VAST360CaptureApp(ctk.CTk):
         try:
             self.running = True
             self.disable_buttons()
-            exposure_value = self.exposure_var.get()
-            if exposure_value <= 0:
-                self.update_status("Exposure time must be positive")
-                self.running = False
-                self.enable_buttons()
-                return
-            
             camera_control = CameraControl()
             capture_display = self.capture_tab.children['!ctkframe2'].children['!ctkframe']
             display_height = capture_display.winfo_height()
             display_width = capture_display.winfo_width()
             current_brightness = self.led1_brightness.get()
-            image = camera_control.capture_image(self.auto_imager.usb, display_height, display_width, led_brightness=current_brightness, exposure_ms=exposure_value)
+            image = camera_control.capture_image(self.auto_imager.usb, display_height, display_width, led_brightness=current_brightness)
             self.display_image(image, capture_display)
         except Exception as e:
             self.update_status(f"Error during test capture: {e}")
@@ -406,18 +571,12 @@ class VAST360CaptureApp(ctk.CTk):
     def test_capture_motor(self):
         self.running = True
         self.disable_buttons()
-        exposure_value = self.exposure_var.get()
-        if exposure_value <= 0:
-            self.update_status("Exposure time must be positive")
-            self.running = False
-            self.enable_buttons()
-            return
         camera_control = CameraControl()
         capture_display = self.motor_tab.children['!ctkframe2'].children['!ctkframe']
         display_height = self.motor_test_capture_display.winfo_height()
         display_width = self.motor_test_capture_display.winfo_width()
         current_brightness = self.led1_brightness.get()
-        image = camera_control.capture_image(self.auto_imager.usb, display_height, display_width, led_brightness=current_brightness, exposure_ms=exposure_value)
+        image = camera_control.capture_image(self.auto_imager.usb, display_height, display_width, led_brightness=current_brightness)
         self.display_image(image, capture_display)
         self.running = False
         self.enable_buttons()
@@ -494,14 +653,21 @@ class VAST360CaptureApp(ctk.CTk):
         self.run_btn.configure(require_redraw=True, state="normal", fg_color='green')
     
     def display_image(self, image, capture_display):
-        img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    
         display_width = capture_display.winfo_width() or 400
         display_height = capture_display.winfo_height() or 300
-        img = cv2.resize(img, (capture_display.winfo_width(), capture_display.winfo_height()))
+        aspect_ratio = image.shape[1] / image.shape[0]
 
-        pil_image = Image.fromarray(img)
+        pil_image = Image.fromarray(image)
         
+        if display_width / aspect_ratio <= display_height:
+            new_width = display_width
+            new_height = int(display_width / aspect_ratio)
+        else:
+            new_height = display_height
+            new_width = int(display_height * aspect_ratio)
+
+        pil_image = pil_image.resize((new_width, new_height))
+
         photo = ctk.CTkImage(dark_image=pil_image, size=(display_width, display_height))
         label = ctk.CTkLabel(capture_display, image=photo, text='')
         label.place(relx=0.5, rely=0.5, anchor="center")
