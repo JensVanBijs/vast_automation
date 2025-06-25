@@ -119,7 +119,7 @@ class AutoImager():
             self.destroy_empty_img_dir(dir)
         return
 
-    def get_control_images(self, sample_id):
+    def get_control_images(self, sample_id, brightness: float = 1.0):
         """
         Captures control images using a camera, motor, and LED setup.
         Parameters:
@@ -151,6 +151,7 @@ class AutoImager():
                     print(e)
                     pass
                 self.rotational_motor.IniMotor(True)
+                self.led.SetCurrent(1, brightness)
                 self.led.LedOnOff(1, True, 1)
                 dir = self.create_img_directory(sample_id, control = True)
                 try:

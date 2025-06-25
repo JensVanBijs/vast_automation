@@ -45,8 +45,6 @@ class VAST360CaptureApp(ctk.CTk):
         self.pos_var = ctk.IntVar(value=10)   
         self.rot_var = ctk.IntVar(value=10)
 
-        # self.exposure_var = ctk.DoubleVar(value=200.0)
-
         # initialieze LED settings and control
         self.led_settings = LedSettings()
         self.led_ctrl = LedCtrl(self.auto_imager.usb)
@@ -62,14 +60,14 @@ class VAST360CaptureApp(ctk.CTk):
         self.led1_brightness = ctk.DoubleVar(value=1.0)
 
         # initialize motors
-        self.pos_motor = self.auto_imager.z_positional_motor
-        self.rot_motor = self.auto_imager.rotational_motor
+        # self.pos_motor = self.auto_imager.z_positional_motor
+        # self.rot_motor = self.auto_imager.rotational_motor
 
         self.init_motors()
 
         # Configure window
         self.title("Automatic VAST 360 Capture")
-        self.geometry("1200x800")
+        self.geometry("1400x800")
 
         # sample ID
         self.status_frame = ctk.CTkFrame(self, height=30, corner_radius=0)
@@ -260,7 +258,7 @@ class VAST360CaptureApp(ctk.CTk):
                 "tips": [
                     "For fluorescence imaging, minimize ambient light in the room", 
                     "Adjust the microscropic camera such that it is properly focused on the zebrafish",
-                    "To adjust exposure time or brightness, change it in controllers/microscope_settings/microscope_configuration.json"
+                    "To adjust exposure time or brightness of the microscopic camera, change it in controllers/microscope_settings/microscope_configuration.json"
                 ]
             },
             {
@@ -333,7 +331,7 @@ class VAST360CaptureApp(ctk.CTk):
         channel_label = ctk.CTkLabel(left_frame, text="Channel Selection", font=("Arial", 12))
         channel_label.pack(padx=10, pady=(5, 5), anchor="w")
 
-        fluorescence_options = ["White (brightfield)", "Green (430 nm, CH1, visualizes red fluorescence)", "Blue (340 nm, CH2, visualizes green fluorescence)"]
+        fluorescence_options = ["White (brightfield)", "Green (visualizes red fluorescence)", "Blue (visualizes green fluorescence)"]
         self.fluorescence_vars = {}
     
         for option in fluorescence_options:
@@ -391,7 +389,7 @@ class VAST360CaptureApp(ctk.CTk):
         right_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
 
         # Display area
-        self.capture_display = ctk.CTkFrame(right_frame, height=300, width=400, fg_color="black")
+        self.capture_display = ctk.CTkFrame(right_frame, height=300, width=1024, fg_color="black")
         self.capture_display.pack(padx=10, pady=10, expand=True, fill="both")
 
         label = ctk.CTkLabel(self.capture_display, text="Test capture", text_color="white")
@@ -644,8 +642,8 @@ class VAST360CaptureApp(ctk.CTk):
         right_frame = ctk.CTkFrame(self.motor_tab, fg_color="gray30")
         right_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
 
-        self.motor_test_capture_display = ctk.CTkFrame(right_frame, height=300, width=400, fg_color="black")
-        self.motor_test_capture_display.pack(padx=10, pady=10, expand=True, fill="both")
+        self.motor_test_capture_display = ctk.CTkFrame(right_frame, height=300, width=1024, fg_color="black")
+        self.motor_test_capture_display.pack(padx=10, pady=10)
 
         stream_label = ctk.CTkLabel(self.motor_test_capture_display, text="Test Capture", text_color="white")
         stream_label.place(relx=0.5, rely=0.5, anchor="center")
@@ -763,7 +761,8 @@ class VAST360CaptureApp(ctk.CTk):
         sample_id = self.sample_id_entry.get()
         if not sample_id:
             sample_id = now
-        self.auto_imager.get_control_images(sample_id)
+        current_brightness = self.led1_brightness.get()
+        self.auto_imager.get_control_images(sample_id, current_brightness)
         self.auto_imager.microscope.wait()
         self.auto_imager.get_leica_images(magnification_options, lighting_options, sample_id, progress_callback=self.update_progress)
         self.auto_imager.microscope.wait()
@@ -771,13 +770,13 @@ class VAST360CaptureApp(ctk.CTk):
         self.time_remaining_label.configure(text="Completed!")
         self.running = False
         self.enable_buttons()
-
+    
     def get_magnification_and_lighting_options(self):
         checkboxes = [ c for c in self.capture_tab.children['!ctkframe'].children.values() if isinstance(c, ctk.CTkCheckBox) ]
         filter_map = {
             "White (brightfield)": "White", 
-            "Green (430 nm, CH1, visualizes red fluorescence)": "Green",
-            "Blue (340 nm, CH2, visualizes green fluorescence)": "Blue"
+            "Green (visualizes red fluorescence)": "Green",
+            "Blue (visualizes green fluorescence)": "Blue"
         }
         objective_map = {
         "2.5x": "2.5x",  

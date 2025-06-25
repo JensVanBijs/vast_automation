@@ -31,7 +31,7 @@
         <Feature Name="ExposureAutoRate" Type="Integer" Access="R/W">100</Feature>
         <Feature Name="ExposureAutoTarget" Type="Integer" Access="R/W">52</Feature>
         <Feature Name="ExposureMode" Type="Enumeration" Access="R/W">Timed</Feature>
-        <Feature Name="ExposureTimeAbs" Type="Float" Access="R/W">10.000000</Feature>
+        <Feature Name="ExposureTimeAbs" Type="Float" Access="R/W">10.000000</Feature><!-- Increase for more brightness, decrease for less -->
         <Feature Name="GVCPCmdRetries" Type="Integer" Access="R/W">5</Feature>
         <Feature Name="GVCPCmdTimeout" Type="Integer" Access="R/W">250</Feature>
         <Feature Name="GVSPBurstSize" Type="Integer" Access="R/W">1</Feature>
@@ -49,7 +49,7 @@
         <Feature Name="GainAutoOutliers" Type="Integer" Access="R/W">0</Feature>
         <Feature Name="GainAutoRate" Type="Integer" Access="R/W">100</Feature>
         <Feature Name="GainAutoTarget" Type="Integer" Access="R/W">50</Feature>
-        <Feature Name="GainRaw" Type="Integer" Access="R/W">21</Feature>
+        <Feature Name="GainRaw" Type="Integer" Access="R/W">21</Feature><!-- Increase for more brightness, decrease for less -->
         <Feature Name="GevHeartbeatInterval" Type="Integer" Access="R/W">4450</Feature>
         <Feature Name="GevHeartbeatTimeout" Type="Integer" Access="R/W">6000</Feature>
         <Feature Name="Height" Type="Integer" Access="R/W">250</Feature>
