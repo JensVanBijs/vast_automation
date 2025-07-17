@@ -12,9 +12,9 @@
         <Feature Name="AcquisitionFrameCount" Type="Integer" Access="R/W">1</Feature>
         <Feature Name="AcquisitionFrameRateAbs" Type="Float" Access="R/W">60.0000</Feature>
         <Feature Name="AcquisitionMode" Type="Enumeration" Access="R/W">Continuous</Feature>
-        <Feature Name="BalanceWhiteAuto" Type="Enumeration" Access="R/W">Continuous</Feature>
+        <Feature Name="BalanceWhiteAuto" Type="Enumeration" Access="R/W">Off</Feature>
         <Feature Name="BalanceWhiteAutoAdjustTol" Type="Integer" Access="R/W">5</Feature>
-        <Feature Name="BalanceWhiteAutoRate" Type="Integer" Access="R/W">100</Feature>
+        <Feature Name="BalanceWhiteAutoRate" Type="Integer" Access="R/W">0</Feature>
         <Feature Name="BandwidthControlMode" Type="Enumeration" Access="R/W">StreamBytesPerSecond</Feature>
         <Feature Name="BinningHorizontal" Type="Integer" Access="R/W">1</Feature>
         <Feature Name="BinningVertical" Type="Integer" Access="R/W">1</Feature>
@@ -22,16 +22,16 @@
         <Feature Name="DSPSubregionLeft" Type="Integer" Access="R/W">0</Feature>
         <Feature Name="DSPSubregionRight" Type="Integer" Access="R/W">1024</Feature>
         <Feature Name="DSPSubregionTop" Type="Integer" Access="R/W">0</Feature>
-        <Feature Name="ExposureAuto" Type="Enumeration" Access="R/W">Continuous</Feature>
+        <Feature Name="ExposureAuto" Type="Enumeration" Access="R/W">Off</Feature>
         <Feature Name="ExposureAutoAdjustTol" Type="Integer" Access="R/W">5</Feature>
         <Feature Name="ExposureAutoAlg" Type="Enumeration" Access="R/W">Mean</Feature>
         <Feature Name="ExposureAutoMax" Type="Integer" Access="R/W">500000</Feature>
         <Feature Name="ExposureAutoMin" Type="Integer" Access="R/W">10</Feature>
         <Feature Name="ExposureAutoOutliers" Type="Integer" Access="R/W">0</Feature>
-        <Feature Name="ExposureAutoRate" Type="Integer" Access="R/W">100</Feature>
+        <Feature Name="ExposureAutoRate" Type="Integer" Access="R/W">0</Feature>
         <Feature Name="ExposureAutoTarget" Type="Integer" Access="R/W">52</Feature>
         <Feature Name="ExposureMode" Type="Enumeration" Access="R/W">Timed</Feature>
-        <Feature Name="ExposureTimeAbs" Type="Float" Access="R/W">10.000000</Feature><!-- Increase for more brightness, decrease for less -->
+        <Feature Name="ExposureTimeAbs" Type="Float" Access="R/W">300.000000</Feature><!-- DOUBLED: Much higher exposure for maximum brightness -->
         <Feature Name="GVCPCmdRetries" Type="Integer" Access="R/W">5</Feature>
         <Feature Name="GVCPCmdTimeout" Type="Integer" Access="R/W">250</Feature>
         <Feature Name="GVSPBurstSize" Type="Integer" Access="R/W">1</Feature>
@@ -41,7 +41,7 @@
         <Feature Name="GVSPMaxWaitSize" Type="Integer" Access="R/W">100</Feature>
         <Feature Name="GVSPMissingSize" Type="Integer" Access="R/W">256</Feature>
         <Feature Name="GVSPTiltingSize" Type="Integer" Access="R/W">100</Feature>
-        <Feature Name="GVSPTimeout" Type="Integer" Access="R/W">70</Feature>
+        <Feature Name="GVSPTimeout" Type="Integer" Access="R/W">2000</Feature><!-- Increased timeout to prevent frame capture timeouts -->
         <Feature Name="GainAuto" Type="Enumeration" Access="R/W">Off</Feature>
         <Feature Name="GainAutoAdjustTol" Type="Integer" Access="R/W">5</Feature>
         <Feature Name="GainAutoMax" Type="Integer" Access="R/W">34</Feature>
@@ -49,9 +49,9 @@
         <Feature Name="GainAutoOutliers" Type="Integer" Access="R/W">0</Feature>
         <Feature Name="GainAutoRate" Type="Integer" Access="R/W">100</Feature>
         <Feature Name="GainAutoTarget" Type="Integer" Access="R/W">50</Feature>
-        <Feature Name="GainRaw" Type="Integer" Access="R/W">21</Feature><!-- Increase for more brightness, decrease for less -->
+        <Feature Name="GainRaw" Type="Integer" Access="R/W">25</Feature><!-- INCREASED AGAIN: Maximum gain for brightest images -->
         <Feature Name="GevHeartbeatInterval" Type="Integer" Access="R/W">4450</Feature>
-        <Feature Name="GevHeartbeatTimeout" Type="Integer" Access="R/W">6000</Feature>
+        <Feature Name="GevHeartbeatTimeout" Type="Integer" Access="R/W">15000</Feature><!-- Increased heartbeat timeout for better stability -->
         <Feature Name="Height" Type="Integer" Access="R/W">250</Feature>
         <Feature Name="IrisAutoTarget" Type="Integer" Access="R/W">50</Feature>
         <Feature Name="IrisMode" Type="Enumeration" Access="R/W">Disabled</Feature>
@@ -77,8 +77,8 @@
     </FeatureGroup>
     <SelectorGroup Count="5" SelectedFeatures="12">
         <Selector Name="BalanceRatioSelector" Type="Enumeration" SelectedFeatures="1">
-            <SelectorCombination Entry="Red" Feature="BalanceRatioAbs" Type="Float">0.9764706</SelectorCombination>
-            <SelectorCombination Entry="Blue" Feature="BalanceRatioAbs" Type="Float">0.9686275</SelectorCombination>
+            <SelectorCombination Entry="Red" Feature="BalanceRatioAbs" Type="Float">1.20</SelectorCombination>
+            <SelectorCombination Entry="Blue" Feature="BalanceRatioAbs" Type="Float">1.30</SelectorCombination>
         </Selector>
         <Selector Name="EventSelector" Type="Enumeration" SelectedFeatures="2">
             <SelectorCombination Entry="AcquisitionStart" Feature="EventNotification" Type="Enumeration">Off</SelectorCombination>

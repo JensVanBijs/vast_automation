@@ -174,9 +174,51 @@ class AutoImager():
                 try:
                 # Get the camera's pixel format
                     cam_pixel_format = camera.get_feature_by_name('PixelFormat').get()
+                    print(f"Camera pixel format: {cam_pixel_format}")
+                    
+                    # Ensure acquisition is started
+                    try:
+                        camera.get_feature_by_name('AcquisitionStart').run()
+                        time.sleep(0.5)
+                    except:
+                        pass
+                    
                     for i in range(20):
                         frame: Frame
-                        frame = camera.get_frame()
+                        
+                        # Add timeout and retry logic for frame capture
+                        max_retries = 3
+                        timeout_ms = 10000  # Increased to 10 seconds timeout
+                        
+                        for attempt in range(max_retries):
+                            try:
+                                print(f"Capturing frame {i+1}/20 (attempt {attempt + 1}/{max_retries})")
+                                
+                                # Check acquisition status before each frame
+                                try:
+                                    acq_status = camera.get_feature_by_name('AcquisitionStatus').get()
+                                    if acq_status != 'Running':
+                                        camera.get_feature_by_name('AcquisitionStart').run()
+                                        time.sleep(0.2)
+                                except:
+                                    pass
+                                
+                                frame = camera.get_frame(timeout_ms=timeout_ms)
+                                break  # Success, exit retry loop
+                            except Exception as e:
+                                print(f"Frame capture attempt {attempt + 1} failed: {e}")
+                                if attempt == max_retries - 1:
+                                    raise Exception(f"Failed to capture frame {i+1} after {max_retries} attempts: {e}")
+                                
+                                # Try to reset acquisition between attempts
+                                try:
+                                    camera.get_feature_by_name('AcquisitionStop').run()
+                                    time.sleep(0.5)
+                                    camera.get_feature_by_name('AcquisitionStart').run()
+                                    time.sleep(0.5)
+                                except:
+                                    pass
+                        
                         # Handle Bayer formats by converting to a compatible format
                         if 'Bayer' in str(cam_pixel_format):
                             # Convert Bayer to BGR format that OpenCV can handle
