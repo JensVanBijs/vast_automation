@@ -140,7 +140,7 @@ class VAST360CaptureApp(ctk.CTk):
         # Define the steps
         steps = [
             "Open the VAST software",
-            "Flush the system with PRIME",
+            "Flush the system with PRIME or use the pump controls to flush the system",
             "Load the zebrafish into the tube and pump into the capillary with its manual pomping controls",
             "Press LOAD to initialize loading",
             "Once first image is visible, press Abort Operation",
@@ -594,7 +594,7 @@ class VAST360CaptureApp(ctk.CTk):
         preset_label = ctk.CTkLabel(preset_frame, text="Step size:")
         preset_label.pack(side="left", padx=5)
 
-        for preset in [1, 5, 10, 25]:
+        for preset in [10, 50, 100, 250]:
             preset_btn = ctk.CTkButton(preset_frame, text=str(preset), width=30, command=lambda p=preset: self.pos_var.set(p))
             preset_btn.pack(side="left", padx=5)
 
@@ -666,12 +666,14 @@ class VAST360CaptureApp(ctk.CTk):
         try:
             if self.pos_motor:
                 distance = self.pos_var.get()
+                try:
+                    distance = int(distance)
+                except ValueError:
+                    self.update_status('invalid distance value')
+                    return
                 print(f"Moving positional motor left by {distance} steps")
                 self.pos_motor.SelectMotor()
-                print(self.pos_motor)
                 self.pos_motor.move_z_motor(distance, "left")
-                print(self.pos_motor.move_z_motor(distance, "left"))
-
                 self.update_status(f"Moved positional motor left by {distance} steps")
             else:
                 self.update_status("Positional motor not initialized")
@@ -688,6 +690,7 @@ class VAST360CaptureApp(ctk.CTk):
                     self.update_status("Invalid distance value")
                     return  
                 print(f"Moving positional motor right by {distance} steps")
+                self.pos_motor.SelectMotor()
                 self.pos_motor.move_z_motor(distance, "right")
                 self.update_status(f"Moved positional motor right by {distance} steps")
             else:
