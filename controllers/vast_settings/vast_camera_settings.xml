@@ -77,8 +77,8 @@
     </FeatureGroup>
     <SelectorGroup Count="5" SelectedFeatures="12">
         <Selector Name="BalanceRatioSelector" Type="Enumeration" SelectedFeatures="1">
-            <SelectorCombination Entry="Red" Feature="BalanceRatioAbs" Type="Float">1.710000</SelectorCombination>
-            <SelectorCombination Entry="Blue" Feature="BalanceRatioAbs" Type="Float">1.820000</SelectorCombination>
+            <SelectorCombination Entry="Red" Feature="BalanceRatioAbs" Type="Float">0.9764706</SelectorCombination>
+            <SelectorCombination Entry="Blue" Feature="BalanceRatioAbs" Type="Float">0.9686275</SelectorCombination>
         </Selector>
         <Selector Name="EventSelector" Type="Enumeration" SelectedFeatures="2">
             <SelectorCombination Entry="AcquisitionStart" Feature="EventNotification" Type="Enumeration">Off</SelectorCombination>

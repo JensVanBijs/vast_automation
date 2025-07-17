@@ -17,6 +17,8 @@ import xml.etree.ElementTree as ET
 from controllers.led_control import LedCtrl, LedSettings
 import json
 from pathlib import Path
+import threading
+import queue
 
 CONFIG_Path = Path(__file__).parent / "controllers" / "microscope_settings" / "microscope_configuration.json"
 
@@ -35,6 +37,10 @@ class VAST360CaptureApp(ctk.CTk):
         self.auto_imager = AutoImager()
         self.running = False
         self.streaming = False
+        
+        # Add progress tracking
+        self.progress_queue = queue.Queue()
+        self.imaging_thread = None
 
         try:
             self.microscope = MicroscopeManager()
@@ -752,24 +758,90 @@ class VAST360CaptureApp(ctk.CTk):
 
     def on_run(self):
         magnification_options, lighting_options = self.get_magnification_and_lighting_options()
+        
+        if not magnification_options or not lighting_options:
+            self.update_status("Please select at least one magnification and one fluorescence option")
+            return
+        
         self.running = True
         self.disable_buttons()
         self.start_time = time.time()
         self.current_image = 0
         self.update_progress(0)
+        
         now = datetime.now().strftime("%Y%m%d_%H%M%S")
         sample_id = self.sample_id_entry.get()
         if not sample_id:
             sample_id = now
         current_brightness = self.led1_brightness.get()
-        self.auto_imager.get_control_images(sample_id, current_brightness)
-        self.auto_imager.microscope.wait()
-        self.auto_imager.get_leica_images(magnification_options, lighting_options, sample_id, progress_callback=self.update_progress)
-        self.auto_imager.microscope.wait()
-        self.update_progress(self.total_images)
-        self.time_remaining_label.configure(text="Completed!")
-        self.running = False
-        self.enable_buttons()
+        
+        # Start the imaging process in a separate thread
+        self.imaging_thread = threading.Thread(
+            target=self.run_imaging_process,
+            args=(magnification_options, lighting_options, sample_id, current_brightness),
+            daemon=True
+        )
+        self.imaging_thread.start()
+        
+        # Start checking for progress updates
+        self.check_progress_updates()
+
+    def run_imaging_process(self, magnification_options, lighting_options, sample_id, current_brightness):
+        """Run the imaging process in a separate thread"""
+        try:
+            # Create a thread-safe progress callback
+            def progress_callback(current_image):
+                self.progress_queue.put(("progress", current_image))
+            
+            self.progress_queue.put(("status", "Starting control images..."))
+            self.auto_imager.get_control_images(sample_id, current_brightness, progress_callback=progress_callback)
+            
+            if hasattr(self.auto_imager, 'microscope') and self.auto_imager.microscope:
+                self.auto_imager.microscope.wait()
+            
+            self.progress_queue.put(("status", "Starting Leica images..."))
+            self.auto_imager.get_leica_images(magnification_options, lighting_options, sample_id, progress_callback=progress_callback)
+            
+            if hasattr(self.auto_imager, 'microscope') and self.auto_imager.microscope:
+                self.auto_imager.microscope.wait()
+            
+            self.progress_queue.put(("complete", None))
+            
+        except Exception as e:
+            self.progress_queue.put(("error", str(e)))
+
+    def check_progress_updates(self):
+        """Check for progress updates from the imaging thread"""
+        try:
+            while True:
+                try:
+                    message_type, data = self.progress_queue.get_nowait()
+                    
+                    if message_type == "progress":
+                        self.update_progress(data)
+                    elif message_type == "status":
+                        self.update_status(data)
+                    elif message_type == "complete":
+                        self.update_progress(self.total_images)
+                        self.time_remaining_label.configure(text="Completed!")
+                        self.running = False
+                        self.enable_buttons()
+                        return  # Stop checking for updates
+                    elif message_type == "error":
+                        self.update_status(f"Error during imaging: {data}")
+                        self.running = False
+                        self.enable_buttons()
+                        return  # Stop checking for updates
+                        
+                except queue.Empty:
+                    break
+                    
+        except Exception as e:
+            self.update_status(f"Error in progress updates: {e}")
+        
+        # Continue checking for updates if the process is still running
+        if self.running:
+            self.after(100, self.check_progress_updates)  # Check again in 100ms
     
     def get_magnification_and_lighting_options(self):
         checkboxes = [ c for c in self.capture_tab.children['!ctkframe'].children.values() if isinstance(c, ctk.CTkCheckBox) ]

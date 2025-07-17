@@ -39,13 +39,15 @@ class AutoImager():
         self.led.SetCurrent(1, 1)
         self.microscope = MicroscopeManager()
 
-    def snap_images(self, dir: str):
+    def snap_images(self, dir: str, progress_callback=None, current_image_offset=0):
         """
         Captures a series of images using a microscope and saves them to a specified directory.
         Args:
             motor (Motor): The motor object used to rotate the sample.
             microscope (MicroscopeManager): The microscope manager object used to capture images.
             dir (str): The directory where the images will be saved.
+            progress_callback (callable): Optional callback function to report progress
+            current_image_offset (int): Offset for image numbering in progress updates
         Raises:
             Exception: If an error occurs during image capture or motor rotation.
         Notes:
@@ -62,6 +64,11 @@ class AutoImager():
                 self.microscope.save_picture(img, f"{dir}/img_{i}.tiff")
                 self.rotational_motor.RotateToPos(1, 10, 300, 20)
                 time.sleep(0.2)
+                
+                # Report progress if callback provided
+                if progress_callback:
+                    progress_callback(current_image_offset + i + 1)
+                    
         except Exception as e:
             print(e)
         finally:
@@ -79,11 +86,15 @@ class AutoImager():
             fluorescence (list): A list of fluorescence filter settings to use.
             microscope (MicroscopeManager): The microscope manager object to control the microscope.
             date_time (str): The date and time string to use for naming directories and files.
+            progress_callback (callable): Optional callback function to report progress
         Returns:
             None
         """
         self.rotational_motor.IniMotor(True)
         self.led.LedOnOff(1, False, 1)
+        
+        current_image_count = 0
+        
         for z in zoom:
             for f in fluorescence:
                 dir = self.create_img_directory(sample_id, control=False, zoom=z, fluorescence=f)
@@ -91,7 +102,11 @@ class AutoImager():
                 self.microscope.wait()
                 self.microscope.switch_filter(f)
                 self.microscope.wait()
-                self.snap_images(dir)
+                
+                # Pass progress callback with current offset
+                self.snap_images(dir, progress_callback, current_image_count)
+                current_image_count += 500  # Each snap_images captures 500 images
+                
         self.microscope.switch_filter("White")
         self.microscope.wait()
         return
@@ -119,13 +134,15 @@ class AutoImager():
             self.destroy_empty_img_dir(dir)
         return
 
-    def get_control_images(self, sample_id, brightness: float = 1.0):
+    def get_control_images(self, sample_id, brightness: float = 1.0, progress_callback=None):
         """
         Captures control images using a camera, motor, and LED setup.
         Parameters:
         motor (Motor): The motor object used to control the camera's position.
         led (LED): The LED object used to control the lighting.
         date_time (str): The date and time string used to create the image directory.
+        brightness (float): LED brightness level (0.0 to 1.0)
+        progress_callback (callable): Optional callback function to report progress
         Returns:
         None
         The function performs the following steps:
@@ -133,7 +150,7 @@ class AutoImager():
         2. Sets up the camera with specific height and width settings.
         3. Initializes the motor and turns on the LED.
         4. Creates a directory to store the captured images.
-        5. Captures 500 images, saving each one to the directory and rotating the motor between captures.
+        5. Captures 20 images, saving each one to the directory and rotating the motor between captures.
         6. Handles any exceptions that occur during the image capture process.
         7. Cleans up by destroying the image directory if empty, closing all OpenCV windows, and turning off the LED.
         """
@@ -157,7 +174,7 @@ class AutoImager():
                 try:
                 # Get the camera's pixel format
                     cam_pixel_format = camera.get_feature_by_name('PixelFormat').get()
-                    for i in range(5):
+                    for i in range(20):
                         frame: Frame
                         frame = camera.get_frame()
                         # Handle Bayer formats by converting to a compatible format
@@ -170,6 +187,11 @@ class AutoImager():
                         img.save(f"{dir}/img_{i}.tiff")
                         self.rotational_motor.RotateToPos(1, 10, 300, 20)
                         time.sleep(0.2)
+                        
+                        # Report progress if callback provided
+                        if progress_callback:
+                            progress_callback(i + 1)
+                            
                 except Exception as e:
                     print(f"Error during image capture: {e}")
                 finally:
@@ -185,13 +207,29 @@ class AutoImager():
     def create_img_directory(self, date_time: str, control: bool = False, zoom: str = None, fluorescence: str = None):
         if not os.path.exists("Results"):
             os.makedirs("Results")
+
+        # Create the main directory for this session
+        main_dir = "Results/" + date_time
+        if not os.path.exists(main_dir):
+            os.makedirs(main_dir)
+            
+            # Save microscope configuration file only once per session at the main directory level
+            config_source = "controllers/microscope_settings/microscope_configuration.json"
+            config_dest = os.path.join(main_dir, "microscope_configuration.json")
+
+            if os.path.exists(config_source):
+                shutil.copy(config_source, config_dest)
+                print(f"Microscope configuration saved to {config_dest}")
+            else:
+                print(f"Configuration file {config_source} does not exist. Skipping copy.")
         
-        dir_string = "Results/" + date_time
+        # Create the specific subdirectory for images
         if control:
-            dir_string += "/Control/structure_images"
+            dir_string = main_dir + "/Control/structure_images"
         else:
-            dir_string += f'/{zoom}/{fluorescence}/structure_images'
+            dir_string = main_dir + f'/{zoom}/{fluorescence}/structure_images'
         os.makedirs(dir_string)
+
         return dir_string
     
 if __name__ == "__main__":
