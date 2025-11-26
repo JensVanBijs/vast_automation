@@ -58,6 +58,7 @@ class VAST360CaptureApp(ctk.CTk):
         # Try to initialize the LED DAC
         try:
             self.led_ctrl.InitDac(self.led_settings)
+            self.led_ctrl.LedOnOff(1, False, 1)
             print("LED control initialized successfully")
         except Exception as e:
             print(f"Error initializing LED control: {e}")
@@ -749,12 +750,14 @@ class VAST360CaptureApp(ctk.CTk):
     def test_capture_motor(self):
         self.running = True
         self.disable_buttons()
-        camera_control = CameraControl()
+        # camera_control = CameraControl()
         capture_display = self.motor_tab.children['!ctkframe2'].children['!ctkframe']
         display_height = self.motor_test_capture_display.winfo_height()
         display_width = self.motor_test_capture_display.winfo_width()
-        current_brightness = self.led1_brightness.get()
-        image = camera_control.capture_image(self.auto_imager.usb, display_height, display_width, led_brightness=current_brightness)
+        # current_brightness = self.led1_brightness.get()
+        # image = camera_control.capture_image(self.auto_imager.usb, display_height, display_width, led_brightness=current_brightness)
+        magnification_options, lighting_options = self.get_magnification_and_lighting_options()
+        image = self.auto_imager.test_image('test', '2.5x', 'White')
         self.display_image(image, capture_display)
         self.running = False
         self.enable_buttons()

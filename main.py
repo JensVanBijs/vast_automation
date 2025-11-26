@@ -111,7 +111,7 @@ class AutoImager():
         self.microscope.wait()
         return
 
-    def test_image(self, test_name, fluorescence, zoom):
+    def test_image(self, test_name, zoom, fluorescence):
         """
         Captures a test image using the microscope and saves it to a specified directory.
         Args:
@@ -119,20 +119,17 @@ class AutoImager():
         Returns:
             None
         """
-        try:
-            dir = self.create_img_directory(test_name, False, zoom, fluorescence)
-            self.led.LedOnOff(1, False, 1)
-            self.microscope.switch_objective(zoom)
-            self.microscope.wait()
-            self.microscope.switch_filter(fluorescence)
-            self.microscope.wait()
-            img = self.microscope.snap_picture()
-            self.microscope.wait()
-            self.microscope.save_picture(img, f"{dir}/test_image.tiff")
-        except Exception as e:
-            print(f"Error during test image capture: {e}")
-            self.destroy_empty_img_dir(dir)
-        return
+        
+            # dir = self.create_img_directory(test_name, False, zoom, fluorescence)
+        self.led.LedOnOff(1, False, 1)
+        self.microscope.switch_objective(zoom)
+        self.microscope.wait()
+        self.microscope.switch_filter(fluorescence)
+        self.microscope.wait()
+        img = self.microscope.snap_picture()
+        self.microscope.wait()
+            # self.destroy_empty_img_dir(dir)
+        return img
 
     def get_control_images(self, sample_id, brightness: float = 1.0, progress_callback=None):
         """

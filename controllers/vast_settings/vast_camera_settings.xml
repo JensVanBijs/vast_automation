@@ -62,7 +62,7 @@
         <Feature Name="LensVoltageControl" Type="Integer" Access="R/W">0</Feature>
         <Feature Name="OffsetX" Type="Integer" Access="R/W">0</Feature>
         <Feature Name="OffsetY" Type="Integer" Access="R/W">150</Feature>
-        <Feature Name="PixelFormat" Type="Enumeration" Access="R/W">BGR8Packed</Feature>
+        <Feature Name="PixelFormat" Type="Enumeration" Access="R/W">RGB8Packed</Feature>
         <Feature Name="RecorderPreEventCount" Type="Integer" Access="R/W">0</Feature>
         <Feature Name="StreamBufferHandlingMode" Type="Enumeration" Access="R/W">Default</Feature>
         <Feature Name="StreamBytesPerSecond" Type="Integer" Access="R/W">124000000</Feature>

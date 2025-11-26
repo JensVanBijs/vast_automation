@@ -1,10 +1,16 @@
 import numpy as np
+import os
+import sys
+
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(parent_dir)
+
+
 from controllers.led_control import LedCtrl, LedSettings
 from controllers.Usb2Comm import Usb2Comm
 from vimba import Vimba, Camera, Frame, FrameStatus, intersect_pixel_formats, BAYER_PIXEL_FORMATS, VimbaFeatureError, PixelFormat, PersistType, OPENCV_PIXEL_FORMATS
 import cv2
 import threading
-import os
 import time
 
 class CameraControl():
@@ -47,15 +53,14 @@ class CameraControl():
             pass
 
         fmts = camera.get_pixel_formats()
-        fmts = intersect_pixel_formats(fmts, OPENCV_PIXEL_FORMATS)
+        # fmts = intersect_pixel_formats(fmts, OPENCV_PIXEL_FORMATS)
         if fmts:
             print(fmts)
             # camera.set_pixel_format(fmts[0])
         else:
             raise Exception("No matching pixel format available")
-        cwd = os.getcwd()
-        print(f"Current working directory: {cwd}")
-        settings_path = os.path.join(cwd, 'controllers', 'vast_settings', 'vast_camera_settings.xml')
+        cwd = os.path.dirname(os.path.abspath(__file__))
+        settings_path = os.path.join(cwd, 'vast_settings', 'vast_camera_settings.xml')
         camera.load_settings(settings_path, PersistType.All)
         
         # Give camera time to initialize properly
@@ -106,7 +111,8 @@ class CameraControl():
             img: Frame
             with cameras[0] as camera:
                 self.setup_camera(camera)
-                
+                print(camera.get_pixel_format())
+
                 # Add timeout and retry logic for frame capture
                 max_retries = 3
                 timeout_ms = 10000  # Increased to 10 seconds timeout
@@ -143,32 +149,44 @@ class CameraControl():
                 
                 # Process the captured frame
                 try:
-                    img.convert_pixel_format(PixelFormat.Bgr8)
+                    format = img.get_pixel_format()
+                    print(f"Captured frame format: {format}")
+                    # Convert BayerGR8 to RGB via Vimba (or use Bgr8 for OpenCV)
+                    try:
+                        img.convert_pixel_format(PixelFormat.Rgb8)   # -> RGB order
+                        # img.convert_pixel_format(PixelFormat.Bgr8)  # -> BGR order (OpenCV default)
+                    except Exception as e:
+                        print(f"Failed to convert pixel format via Vimba: {e}")
+                        # Fallback: demosaic with OpenCV after getting the raw mono array:
+                        mono = img.as_numpy_ndarray()
+                        img_array = cv2.cvtColor(mono, cv2.COLOR_BAYER_GR2RGB)  # produces RGB
                     img_array = img.as_numpy_ndarray()
                     
                     # Apply brightness enhancement for very dark images
                     # Increase contrast and brightness significantly
                     alpha = 4.0  # DOUBLED: Even higher contrast multiplier for maximum brightness
                     beta = 150   # DOUBLED: Much higher brightness addition for whiter appearance
-                    img_array = cv2.convertScaleAbs(img_array, alpha=alpha, beta=beta)
+                    # img_array = cv2.convertScaleAbs(img_array, alpha=alpha, beta=beta)
                     
                     # Reduce green tint by adjusting color channels
                     # Split into BGR channels
-                    b, g, r = cv2.split(img_array)
+                    r, g, b = cv2.split(img_array)
                     
-                    # Reduce green channel intensity and boost red/blue for whiter appearance
-                    g = cv2.multiply(g, 0.65)  # Reduce green more: 25% reduction instead of 15%
+                    # # Reduce green channel intensity and boost red/blue for whiter appearance
+                    g = cv2.multiply(g, 0.75)  # Reduce green more: 25% reduction instead of 15%
                     r = cv2.multiply(r, 1.20)  # Boost red slightly more: 20% instead of 15%
                     b = cv2.multiply(b, 1.15)  # Boost blue slightly more: 15% instead of 10%
                     
-                    # Merge channels back
-                    img_array = cv2.merge([b, g, r])
+                    # # Merge channels back
+                    img_array = cv2.merge([r, g, b])
+                    # cv2.imshow(f'Camera {camera.get_name()}', img_array)
+                    img = cv2.detailEnhance(img_array, sigma_s=10, sigma_r=0.15)
                     
                     # Apply gamma correction for additional brightness
                     gamma = 0.6  # Even lower gamma for more brightness
-                    inv_gamma = 1.0 / gamma
-                    table = np.array([((i / 255.0) ** inv_gamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
-                    img_array = cv2.LUT(img_array, table)
+                    # inv_gamma = 1.0 / gamma
+                    # table = np.array([((i / 255.0) ** inv_gamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
+                    # img_array = cv2.LUT(img_array, table)
                     
                 except Exception as e:
                     print(f"Error converting frame: {e}")
@@ -179,7 +197,7 @@ class CameraControl():
 
             assert isinstance(img_array, np.ndarray), "Captured image is not a numpy array"
 
-        return img_array.copy()
+        return img
 
 class Handler:
     def __init__(self):
@@ -203,5 +221,9 @@ class Handler:
 
 if __name__ == "__main__":
     ctr = CameraControl()
-    ctr.main()
+    usb = Usb2Comm().usb
+    ctr.capture_image(usb, height=720, width=1280, led_brightness=0.95)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    
     

@@ -1,16 +1,16 @@
 {
   "objectives": {
     "2.5x": {
-      "bf_zheight": 19459.40478515625,
+      "bf_zheight": 26988.19634765625,
       "fluo_zheight": 17319.3913671875,
       "brightness": 100,
       "turret_location": 2,
       "positions": 1
     },
     "4x": {
-      "bf_zheight": 27200.732500000002,
-      "fluo_zheight": 27376.068359375,
-      "brightness": 100,
+      "bf_zheight": 33649.40708984375,
+      "fluo_zheight": 33542.3706640625,
+      "brightness": 90,
       "turret_location": 4,
       "positions": 2
     },
@@ -26,7 +26,7 @@
     "White": {
       "filter_location": 1,
       "fluorescence": 0,
-      "exposure": 10
+      "exposure": 5
     },
     "Green": {
       "filter_location": 0,
