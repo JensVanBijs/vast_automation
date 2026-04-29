@@ -27,7 +27,7 @@ class CameraControl():
         ledctrl.LedOnOff(1, True, 1)
         return ledctrl
 
-    def setup_camera(self, camera: Camera, height = 200, width = 1024):
+    def setup_camera(self, camera: Camera, height = 250, width = 1024):
         try: 
             camera.get_feature_by_name('Height').set(height)   
             camera.get_feature_by_name('Width').set(width)
@@ -100,7 +100,7 @@ class CameraControl():
 
         cv2.destroyAllWindows()
 
-    def capture_image(self, usb: Usb2Comm, height: int = 720, width: int = 1280, led_brightness: float = 0.25):
+    def capture_image(self, usb: Usb2Comm, height: int = 250, width: int = 1024, led_brightness: float = 0.25):
         led_control = self.turn_on_led(usb, led_brightness)
         with Vimba.get_instance() as vimba:
             cameras = vimba.get_all_cameras()
@@ -153,8 +153,8 @@ class CameraControl():
                     print(f"Captured frame format: {format}")
                     # Convert BayerGR8 to RGB via Vimba (or use Bgr8 for OpenCV)
                     try:
-                        img.convert_pixel_format(PixelFormat.Rgb8)   # -> RGB order
-                        # img.convert_pixel_format(PixelFormat.Bgr8)  # -> BGR order (OpenCV default)
+                        # img.convert_pixel_format(PixelFormat.Rgb8)   # -> RGB order
+                        img.convert_pixel_format(PixelFormat.Bgr8)  # -> BGR order (OpenCV default)
                     except Exception as e:
                         print(f"Failed to convert pixel format via Vimba: {e}")
                         # Fallback: demosaic with OpenCV after getting the raw mono array:
@@ -170,15 +170,15 @@ class CameraControl():
                     
                     # Reduce green tint by adjusting color channels
                     # Split into BGR channels
-                    r, g, b = cv2.split(img_array)
+                    # b, g, r = cv2.split(img_array)
                     
                     # # Reduce green channel intensity and boost red/blue for whiter appearance
-                    g = cv2.multiply(g, 0.75)  # Reduce green more: 25% reduction instead of 15%
-                    r = cv2.multiply(r, 1.20)  # Boost red slightly more: 20% instead of 15%
-                    b = cv2.multiply(b, 1.15)  # Boost blue slightly more: 15% instead of 10%
+                    # g = cv2.multiply(g, 0.75)  # Reduce green more: 25% reduction instead of 15%
+                    # r = cv2.multiply(r, 1.20)  # Boost red slightly more: 20% instead of 15%
+                    # b = cv2.multiply(b, 1.15)  # Boost blue slightly more: 15% instead of 10%
                     
                     # # Merge channels back
-                    img_array = cv2.merge([r, g, b])
+                    # img_array = cv2.merge([b, g, r])
                     # cv2.imshow(f'Camera {camera.get_name()}', img_array)
                     img = cv2.detailEnhance(img_array, sigma_s=10, sigma_r=0.15)
                     

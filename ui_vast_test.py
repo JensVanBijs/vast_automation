@@ -735,6 +735,7 @@ class VAST360CaptureApp(ctk.CTk):
             self.running = True
             self.disable_buttons()
             camera_control = CameraControl()
+            camera_control.setup_camera(self.auto_imager.usb)
             capture_display = self.capture_tab.children['!ctkframe2'].children['!ctkframe']
             display_height = capture_display.winfo_height()
             display_width = capture_display.winfo_width()
