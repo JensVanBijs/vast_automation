@@ -58,12 +58,24 @@ class AutoImager():
             - Cleans up the directory and closes all OpenCV windows upon completion or error.
         """
         try:
+
+            self.microscope.core.setProperty("BaumerOptronic", "WhiteBalanceR", "1.00")
+            self.microscope.core.setProperty("BaumerOptronic", "WhiteBalanceG", "1.44")
+            self.microscope.core.setProperty("BaumerOptronic", "WhiteBalanceB", "3.33")
+
+            # Discard the first 5 stale frames (BaumerOptronic Camera Adapter issue)
+            self.microscope.brightness = 150
+            for _ in range(5):
+                time.sleep(2)
+                _ = self.microscope.snap_picture()
+
             for i in range(500):
+                self.microscope.brightness = 100
+                time.sleep(2)
                 img = self.microscope.snap_picture()
                 self.microscope.wait()
                 self.microscope.save_picture(img, f"{dir}/img_{i}.tiff")
                 self.rotational_motor.RotateToPos(1, 10, 300, 20)
-                time.sleep(0.2)
                 
                 # Report progress if callback provided
                 if progress_callback:
@@ -172,6 +184,11 @@ class AutoImager():
                 # Get the camera's pixel format
                     cam_pixel_format = camera.get_feature_by_name('PixelFormat').get()
                     print(f"Camera pixel format: {cam_pixel_format}")
+                    camera.get_feature_by_name("BalanceRatioSelector").set("Blue")
+                    camera.get_feature_by_name("BalanceRatioAbs").set(1.70)
+                    camera.get_feature_by_name("BalanceRatioSelector").set("Red")
+                    camera.get_feature_by_name("BalanceRatioAbs").set(1.55)
+                    # print(f"Camera features: {camera.get_all_features()}")
                     
                     # Ensure acquisition is started
                     try:
@@ -180,7 +197,7 @@ class AutoImager():
                     except:
                         pass
                     
-                    for i in range(20):
+                    for i in range(500):
                         frame: Frame
                         
                         # Add timeout and retry logic for frame capture
@@ -189,7 +206,7 @@ class AutoImager():
                         
                         for attempt in range(max_retries):
                             try:
-                                print(f"Capturing frame {i+1}/20 (attempt {attempt + 1}/{max_retries})")
+                                print(f"Capturing frame {i+1}/500 (attempt {attempt + 1}/{max_retries})")
                                 
                                 # Check acquisition status before each frame
                                 try:
@@ -220,10 +237,33 @@ class AutoImager():
                         if 'Bayer' in str(cam_pixel_format):
                             # Convert Bayer to BGR format that OpenCV can handle
                             frame.convert_pixel_format(PixelFormat.Bgr8)
+                            # print(frame.as_numpy_ndarray())
+                            # frame.convert_pixel_format(PixelFormat.Rgb8)
                         # img_array = frame.as_opencv_image()
                         # cv2.imwrite(f"{dir}/img_{i}.tiff", img_array)
-                        img = Image.fromarray(frame.as_numpy_ndarray())
-                        img.save(f"{dir}/img_{i}.tiff")
+                        # img = Image.fromarray(frame.as_numpy_ndarray())
+                        # print(camera.get_feature_by_name("BalanceRatioSelector").get())
+                        # print(camera.get_feature_by_name("BalanceRatioAbs").get())
+                        img = frame.as_numpy_ndarray()
+                        # img[:, :, 0] = img[:, :, 0] * 1.55
+                        img[:, :, 0] = img[:, :, 2] * 1.00
+                        img[:, :, 1] = img[:, :, 1] * 1.00
+                        img[:, :, 2] = img[:, :, 0] * 1.00
+                        # img[:, :, 2] = img[:, :, 2] * 1.70
+                        img_s = Image.fromarray(img)
+                        img_s.save(f"{dir}/img_{i}_rgb.tiff")
+
+                        # img = img[:, :, ::-1]
+                        # img_s = Image.fromarray(img)
+                        # img_s.save(f"{dir}/img_{i}_bgr.tiff")
+
+                        # new_img = np.zeros_like(img)
+                        # new_img[:, :, 1] = img[:, :, 1]
+                        # new_img[:, :, 1] = img[:, :, 2]
+                        # new_img[:, :, 2] = img[:, :, 0]
+                        # img_s = Image.fromarray(new_img)
+                        # img_s.save(f"{dir}/img_{i}_grb.tiff")
+
                         self.rotational_motor.RotateToPos(1, 10, 300, 20)
                         time.sleep(0.2)
                         
@@ -253,7 +293,7 @@ class AutoImager():
             os.makedirs(main_dir)
             
             # Save microscope configuration file only once per session at the main directory level
-            config_source = "controllers/microscope_settings/microscope_configuration.json"
+            config_source = os.path.abspath("controllers/microscope_settings/microscope_configuration.json")
             config_dest = os.path.join(main_dir, "microscope_configuration.json")
 
             if os.path.exists(config_source):

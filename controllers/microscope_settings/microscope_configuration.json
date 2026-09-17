@@ -3,7 +3,7 @@
     "2.5x": {
       "bf_zheight": 26988.19634765625,
       "fluo_zheight": 17319.3913671875,
-      "brightness": 250,
+      "brightness": 100,
       "turret_location": 2,
       "positions": 1
     },
@@ -36,7 +36,7 @@
     "Blue": {
       "filter_location": 3,
       "fluorescence": 1,
-      "exposure": 4000
+      "exposure": 250
     }
   }
 }

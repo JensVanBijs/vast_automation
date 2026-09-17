@@ -795,6 +795,7 @@ class VAST360CaptureApp(ctk.CTk):
 
     def run_imaging_process(self, magnification_options, lighting_options, sample_id, current_brightness):
         """Run the imaging process in a separate thread"""
+        # TODO: Thread is not killed on canceling the main thread!
         try:
             # Create a thread-safe progress callback
             def progress_callback(current_image):

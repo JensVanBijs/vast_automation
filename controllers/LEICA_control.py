@@ -43,6 +43,7 @@ class MicroscopeManager:
         self.core.setProperty("BaumerOptronic", "PixelType", "32bitRGB")
         self.core.setAutoShutter(False)
         self.core.setShutterOpen(True)
+        # TODO: Add whitebalancing
         plt.axis('off')
 
         self.image = np.array([])
@@ -123,10 +124,12 @@ class MicroscopeManager:
 
     
     def snap_picture(self):
-        img = self.core.snap()
+        self.core.snapImage()
         self.wait()
-        img = img.view(dtype=np.uint8).reshape(img.shape[0], img.shape[1], 4)[...,2::-1]
-        img = img[:,:,::-1]
+        img = self.core.getImage()
+        # img = img.view(dtype=np.uint8).reshape(img.shape[0], img.shape[1], 4)[...,2::-1]
+        # img = img[:,:,::-1]
+        img = img[:, :, :3]
         self.image = img
         return img
 
@@ -137,6 +140,7 @@ class MicroscopeManager:
         # dirpath = os.path.dirname(os.path.abspath(__file__)) 
         # data_dir = os.path.abspath(f"{dirpath}/../data")
         # plt.imshow(picture)
+        # TODO: Fix image format here
         img = Image.fromarray(picture)
         img.save(filename)
 
